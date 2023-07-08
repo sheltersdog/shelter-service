@@ -1,0 +1,34 @@
+spring:
+  data:
+    mongodb:
+      database: database
+      username: username
+      password: password
+      host: host
+      port: 1
+
+properties:
+  gateway:
+    key: key
+    value: value
+  jwt:
+    accessToken: accessToken
+    refreshToken: refreshToken
+    accessTokenExpiredTime: 3600
+    refreshTokenExpiredTime: 172800
+    issuer: issuer
+    subject: subject
+  cors:
+    allowed-origins:
+      - allowed-origins
+  aws:
+    access-key: access-key
+    secret-key: secret-key
+    region: region
+    end-point: http://localhost:8080
+    bucket: bucket
+  kakao:
+    app-key: appKey
+    api-key: apiKey
+    web-key: webKey
+    admin-key: adminKey
