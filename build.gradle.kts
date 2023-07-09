@@ -8,7 +8,7 @@ plugins {
 }
 
 group = "com.sheltersdog"
-version = "0.0.1-SNAPSHOT"
+version = "1.0.0"
 
 java {
     sourceCompatibility = JavaVersion.VERSION_17
@@ -19,6 +19,8 @@ repositories {
 }
 
 dependencies {
+
+    implementation("org.springframework.boot:spring-boot-starter-actuator")
     implementation("org.springframework.boot:spring-boot-starter-data-mongodb-reactive")
     implementation("org.springframework.boot:spring-boot-starter-security")
     implementation("org.springframework.boot:spring-boot-starter-validation")

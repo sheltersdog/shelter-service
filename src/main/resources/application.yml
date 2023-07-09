@@ -32,3 +32,15 @@ properties:
     api-key: apiKey
     web-key: webKey
     admin-key: adminKey
+
+management:
+  endpoint:
+    health:
+      show-details: ALWAYS
+  endpoints:
+    web:
+      exposure:
+        include: health
+  health:
+    mail:
+      enabled: false

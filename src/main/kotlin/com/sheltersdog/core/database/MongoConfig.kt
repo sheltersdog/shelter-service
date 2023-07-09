@@ -2,6 +2,8 @@ package com.sheltersdog.core.database
 
 import com.mongodb.MongoClientSettings
 import com.mongodb.MongoCredential
+import com.mongodb.MongoDriverInformation
+import com.mongodb.ServerAddress
 import com.mongodb.reactivestreams.client.MongoClients
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.annotation.Bean
@@ -36,6 +38,18 @@ class MongoConfig @Autowired constructor(
     fun mongoClient() = MongoClients.create(
         MongoClientSettings.builder()
             .credential(credential())
+            .applyToClusterSettings {
+                it.hosts(
+                    listOf(
+                        ServerAddress(
+                            mongoProperties.host,
+                            mongoProperties.port
+                        )
+                    )
+                )
+            }
+            .build(),
+        MongoDriverInformation.builder()
             .build()
     )
 
