@@ -4,8 +4,7 @@ spring:
       database: database
       username: username
       password: password
-      host: host
-      port: 1
+      uri: uri
 
 properties:
   gateway:
@@ -27,6 +26,7 @@ properties:
     region: region
     end-point: http://localhost:8080
     bucket: bucket
+    cloud-front-url: cloud-front-url
   kakao:
     app-key: appKey
     api-key: apiKey

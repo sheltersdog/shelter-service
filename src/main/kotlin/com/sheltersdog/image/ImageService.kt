@@ -1,5 +1,6 @@
 package com.sheltersdog.image
 
+import com.sheltersdog.core.aws.AwsProperties
 import com.sheltersdog.core.aws.S3MetadataGenerator
 import com.sheltersdog.core.aws.S3Uploader
 import com.sheltersdog.core.util.resizeImage
@@ -7,6 +8,7 @@ import com.sheltersdog.image.entity.Image
 import com.sheltersdog.image.entity.model.ImageStatus
 import com.sheltersdog.image.entity.model.ImageType
 import com.sheltersdog.image.repository.ImageRepository
+import org.apache.commons.imaging.Imaging
 import org.apache.commons.io.FilenameUtils
 import org.bson.types.ObjectId
 import org.springframework.beans.factory.annotation.Autowired
@@ -21,7 +23,8 @@ import java.time.LocalDateTime
 class ImageService @Autowired constructor(
     val s3Uploader: S3Uploader,
     val s3MetadataGenerator: S3MetadataGenerator,
-    val imageRepository: ImageRepository
+    val imageRepository: ImageRepository,
+    val awsProperties: AwsProperties,
 ) {
     fun upload(filePart: FilePart): Mono<String> {
         val extension = FilenameUtils.getExtension(filePart.filename())
@@ -33,17 +36,23 @@ class ImageService @Autowired constructor(
 
         return filePart.transferTo(file).thenReturn(0)
             .flatMap {
+                val imageInfo = Imaging.getImageInfo(file)
                 imageRepository.save(
                     Image(
                         type = ImageType.USER_PROFILE,
                         filename = file.name,
                         resizeFilename = resizeFile.name,
                         status = ImageStatus.NOT_CONNECTED,
+                        width = imageInfo.width,
+                        height = imageInfo.height,
+                        size = file.length(),
                         regDate = LocalDateTime.now()
                     )
                 )
-            }
-            .flatMap {
+            }.flatMap {
+                val image = it.copy(url = awsProperties.cloudFrontUrl + it.id + "/" + resizeFile.name)
+                imageRepository.save(image)
+            }.flatMap {
                 key = it.id
                 val metadata = s3MetadataGenerator.generateImageMetadata(
                     file, filename

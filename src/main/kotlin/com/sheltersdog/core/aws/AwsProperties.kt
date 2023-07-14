@@ -9,4 +9,5 @@ data class AwsProperties(
     val region: String,
     val endPoint: String,
     val bucket: String,
+    val cloudFrontUrl: String,
 )

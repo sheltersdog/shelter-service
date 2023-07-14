@@ -34,8 +34,6 @@ class JwtFilter @Autowired constructor(
             && activeProperties.active != "test"
         ) {
             val value = exchange.request.headers[gatewayProperties.key]
-            exchange.request.headers.forEach { println("${it.key}: ${it.value.first()}") }
-
             if (value.isNullOrEmpty() || !value.first().equals(gatewayProperties.value)) {
                 return filterChainError(exchange, "잘못된 경로로 요청하였습니다.")
             }
