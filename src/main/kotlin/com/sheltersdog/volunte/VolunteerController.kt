@@ -1,5 +1,6 @@
 package com.sheltersdog.volunte
 
+import com.sheltersdog.volunte.dto.request.GetVolunteerCategoriesRequest
 import com.sheltersdog.volunte.dto.request.GetVolunteersRequest
 import com.sheltersdog.volunte.dto.request.PostCrawlingVolunteer
 import com.sheltersdog.volunte.dto.response.VolunteeerDto
@@ -7,6 +8,7 @@ import com.sheltersdog.volunte.entity.CrawlingVolunteer
 import jakarta.validation.Valid
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.*
+import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 
 @RestController
@@ -26,6 +28,13 @@ class VolunteerController @Autowired constructor(val volunteerService: Volunteer
     fun postCrawlingVolunteer(@Valid @RequestBody requestMono: Mono<PostCrawlingVolunteer>): Mono<CrawlingVolunteer> {
         return requestMono.flatMap {
             volunteerService.postCrawlingVolunteer(it)
+        }
+    }
+
+    @GetMapping("/category/list")
+    fun getVolunteerCategories(requestMono: Mono<GetVolunteerCategoriesRequest>): Mono<Array<String>> {
+        return requestMono.flatMap {
+            volunteerService.getVolunteerCategories(it)
         }
     }
 

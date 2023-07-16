@@ -6,6 +6,7 @@ import com.sheltersdog.address.model.getPropertyName
 import com.sheltersdog.address.repository.AddressRepository
 import com.sheltersdog.core.util.localDateToKoreanFormat
 import com.sheltersdog.core.util.yyyyMMddToLocalDate
+import com.sheltersdog.volunte.dto.request.GetVolunteerCategoriesRequest
 import com.sheltersdog.volunte.dto.request.GetVolunteersRequest
 import com.sheltersdog.volunte.dto.request.PostCrawlingVolunteer
 import com.sheltersdog.volunte.dto.response.VolunteeerDto
@@ -13,9 +14,11 @@ import com.sheltersdog.volunte.entity.CrawlingVolunteer
 import com.sheltersdog.volunte.repository.CrawlingVolunteerRepository
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.data.domain.PageRequest
+import org.springframework.data.domain.Pageable
 import org.springframework.data.domain.Sort
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 
 @Service
@@ -32,12 +35,13 @@ class VolunteerService @Autowired constructor(
             Sort.by(Sort.Direction.DESC, "id")
         )
 
-        val categories =
-            if (requestBody.category.isBlank()) listOf()
-            else listOf(requestBody.category)
-
         return crawlingVolunteerRepository.getCrawlingVolunteers(
-            requestBody.keyword, requestBody.addressRegionCode, categories, pageable
+            keyword = requestBody.keyword,
+            regionCode = requestBody.regionCode,
+            categories = requestBody.categories,
+            date = requestBody.date,
+            pageable = pageable,
+            loadAddresses = true,
         ).map { volunteers ->
             volunteers.stream().map { volunteer ->
                 VolunteeerDto(
@@ -72,7 +76,8 @@ class VolunteerService @Autowired constructor(
     fun postCrawlingVolunteer(requestBody: PostCrawlingVolunteer): Mono<CrawlingVolunteer> {
         return addressRepository.getAddressByRegionCode(requestBody.addressRegionCode)
             .flatMap { address ->
-                val searchKeyword = "${requestBody.name} ${requestBody.shelterName} ${requestBody.categories} ${requestBody.time} ${requestBody.content} ${requestBody.detailAddress} ${address.regionName}"
+                val searchKeyword =
+                    "${requestBody.name} ${requestBody.shelterName} ${requestBody.categories} ${requestBody.time} ${requestBody.content} ${requestBody.detailAddress} ${address.regionName}"
                 crawlingVolunteerRepository.saveCrawlingVolunteer(
                     CrawlingVolunteer(
                         name = requestBody.name,
@@ -93,4 +98,14 @@ class VolunteerService @Autowired constructor(
             }
     }
 
+    fun getVolunteerCategories(requestParam: GetVolunteerCategoriesRequest): Mono<Array<String>> {
+        return crawlingVolunteerRepository.getCrawlingVolunteers(
+            regionCode = requestParam.regionCode,
+            date = requestParam.date,
+        ).map { entities ->
+            val categories = mutableSetOf<String>()
+            entities.forEach { entity -> entity.categories.forEach(categories::add) }
+            categories.toTypedArray()
+        }
+    }
 }
