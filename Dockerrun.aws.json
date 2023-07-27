@@ -1,0 +1,13 @@
+{
+  "AWSEBDockerrunVersion": "1",
+  "Image": {
+    "Name": "753938831527.dkr.ecr.ap-northeast-2.amazonaws.com/shelter-service:v1.0.0",
+    "Update": "true"
+  },
+  "Ports": [
+    {
+      "ContainerPort": "8080",
+      "HostPort": "5000"
+    }
+  ]
+}
