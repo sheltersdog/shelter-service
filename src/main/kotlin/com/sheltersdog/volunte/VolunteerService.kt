@@ -14,11 +14,8 @@ import com.sheltersdog.volunte.entity.CrawlingVolunteer
 import com.sheltersdog.volunte.repository.CrawlingVolunteerRepository
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.data.domain.PageRequest
-import org.springframework.data.domain.Pageable
 import org.springframework.data.domain.Sort
 import org.springframework.stereotype.Service
-import org.springframework.transaction.annotation.Transactional
-import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 
 @Service
@@ -27,7 +24,6 @@ class VolunteerService @Autowired constructor(
     val addressRepository: AddressRepository,
 ) {
 
-    @Transactional
     fun getVolunteers(requestBody: GetVolunteersRequest): Mono<List<VolunteeerDto>> {
         val pageable = PageRequest.of(
             requestBody.page,
@@ -72,7 +68,6 @@ class VolunteerService @Autowired constructor(
         }
     }
 
-    @Transactional
     fun postCrawlingVolunteer(requestBody: PostCrawlingVolunteer): Mono<CrawlingVolunteer> {
         return addressRepository.getAddressByRegionCode(requestBody.addressRegionCode)
             .flatMap { address ->

@@ -8,4 +8,7 @@ data class KakaoProperties(
     val apiKey: String,
     val webKey: String,
     val adminKey: String,
+    val redirectUri: String,
+    val getTokenApi: String,
+    val getUserInfoApi: String,
 )
