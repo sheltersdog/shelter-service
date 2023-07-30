@@ -64,14 +64,14 @@ class JwtFilter @Autowired constructor(
 
     private fun saveContextAuthentication(jwt: String) {
         if (!StringUtils.hasText(jwt)) return
-        val id: Long = jwtProvider.getId(jwt)
+        val id: String = jwtProvider.getId(jwt)
         val authentication = generateAuthentication(jwt, id)
         SecurityContextHolder.getContext().authentication = authentication
     }
 
-    private fun generateAuthentication(jwt: String, id: Long): Authentication {
+    private fun generateAuthentication(jwt: String, id: String): Authentication {
         val grantedAuthorities = listOf(SimpleGrantedAuthority("ROLE_USER"))
-        val user = User(id.toString(), "", grantedAuthorities)
+        val user = User(id, "", grantedAuthorities)
         return UsernamePasswordAuthenticationToken(user, jwt, grantedAuthorities)
     }
 }

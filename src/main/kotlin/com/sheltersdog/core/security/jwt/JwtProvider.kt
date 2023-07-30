@@ -29,7 +29,7 @@ class JwtProvider(@Autowired val jwtProperties: JwtProperties) {
         )
     }
 
-    fun generateToken(id: Long): JwtDto {
+    fun generateToken(id: String): JwtDto {
         val accessTokenExpiredTime = LocalDateTime.now().plusSeconds(jwtProperties.accessTokenExpiredTime)
         val refreshTokenExpiredTime = LocalDateTime.now().plusSeconds(jwtProperties.refreshTokenExpiredTime)
 
@@ -51,7 +51,7 @@ class JwtProvider(@Autowired val jwtProperties: JwtProperties) {
         )
     }
 
-    private fun generateJwt(id: Long, key: Key, expiredTime: LocalDateTime): String {
+    private fun generateJwt(id: String, key: Key, expiredTime: LocalDateTime): String {
         return Jwts.builder()
             .setHeader(
                 mapOf<String, String>(
@@ -59,7 +59,7 @@ class JwtProvider(@Autowired val jwtProperties: JwtProperties) {
                     "alg" to "HS256"
                 )
             ).addClaims(
-                mapOf<String, Long>(
+                mapOf<String, String>(
                     "id" to id
                 )
             )
@@ -72,7 +72,7 @@ class JwtProvider(@Autowired val jwtProperties: JwtProperties) {
             .compact()
     }
 
-    fun verifyAccessToken(jwt: String, id: Long) {
+    fun verifyAccessToken(jwt: String, id: String) {
         verifyToken(
             jwt = jwt,
             id = id,
@@ -80,7 +80,7 @@ class JwtProvider(@Autowired val jwtProperties: JwtProperties) {
         )
     }
 
-    fun verifyRefreshToken(jwt: String, id: Long) {
+    fun verifyRefreshToken(jwt: String, id: String) {
         verifyToken(
             jwt = jwt,
             id = id,
@@ -88,18 +88,18 @@ class JwtProvider(@Autowired val jwtProperties: JwtProperties) {
         )
     }
 
-    private fun verifyToken(jwt: String, id: Long, key: Key) {
+    private fun verifyToken(jwt: String, id: String, key: Key) {
         Jwts.parserBuilder()
             .setSigningKey(key)
-            .requireId(id.toString())
+            .requireId(id)
             .requireSubject(jwtProperties.subject)
             .requireIssuer(jwtProperties.issuer)
             .build()
             .parse(jwt)
     }
 
-    fun getId(jwt: String): Long {
-        return parseAccessToken(jwt, accessKey)["id"].toString().toLong()
+    fun getId(jwt: String): String {
+        return parseAccessToken(jwt, accessKey)["id"].toString()
     }
 
     private fun parseAccessToken(jwt: String, key: Key): Map<*, *> {

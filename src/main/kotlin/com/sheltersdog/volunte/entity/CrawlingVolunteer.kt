@@ -27,7 +27,6 @@ data class CrawlingVolunteer(
     val content: String,
     val url: String,
 
-    // @DBRef는 Reactive MongoDB에서 지원하지 않음
     var address: Address? = null,
 
     val searchKeyword: String = "",

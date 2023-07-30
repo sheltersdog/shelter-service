@@ -48,7 +48,11 @@ class MongoConfig @Autowired constructor(
                     .build()
             )
             .applyToSslSettings { it.enabled(activeProperties.active == "prod") }
-            .applyToConnectionPoolSettings { it.maxConnectionIdleTime(1, TimeUnit.MINUTES) }
+            .applyToConnectionPoolSettings {
+                it.maxConnectionIdleTime(1, TimeUnit.MINUTES)
+                it.minSize(5)
+                it.maxSize(10)
+            }
             .applyToClusterSettings { it.applyConnectionString(ConnectionString(mongoProperties.uri)) }
             .build(),
         MongoDriverInformation.builder()
