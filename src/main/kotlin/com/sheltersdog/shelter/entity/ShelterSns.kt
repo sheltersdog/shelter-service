@@ -1,9 +1,8 @@
 package com.sheltersdog.shelter.entity
 
-import org.bson.types.ObjectId
-import org.springframework.data.annotation.Id
+import com.sheltersdog.shelter.entity.model.Sns
 
 data class ShelterSns(
-    val site: String,
+    val site: Sns,
     val url: String,
 )

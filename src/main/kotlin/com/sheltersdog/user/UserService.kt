@@ -24,7 +24,8 @@ class UserService @Autowired constructor(
 
     fun postUser(requestBody: UserJoinRequest): Mono<JwtDto> {
         val nickname = requestBody.nickname.ifBlank { "서비스 유저" }
-        val profileImageUrl = requestBody.profileImageUrl.ifBlank { "https://www.figma.com/file/CB5J2Dd0r2H3DkQB10L3Up/%EC%9C%A0%EB%B0%98-Copy?type=design&node-id=253-6834&mode=design&t=u9UAAyYULdZwPhRU-4" }
+        val profileImageUrl =
+            requestBody.profileImageUrl.ifBlank { "https://www.figma.com/file/CB5J2Dd0r2H3DkQB10L3Up/%EC%9C%A0%EB%B0%98-Copy?type=design&node-id=253-6834&mode=design&t=u9UAAyYULdZwPhRU-4" }
 
         return userRepository.save(
             User(
@@ -38,9 +39,12 @@ class UserService @Autowired constructor(
                 isAgreeServiceTerm = true,
                 serviceTermAgreeDate = LocalDate.now(),
             )
-        ).map { user -> jwtProvider.generateToken(id = user.id.toString())
+        ).map { user ->
+            jwtProvider.generateToken(id = user.id.toString())
         }.switchIfEmpty {
-            Mono.error { throw SheltersdogException("Join Error...!!") }
+            Mono.defer {
+                Mono.error { throw SheltersdogException("Join Error...!!") }
+            }
         }.doOnError { error ->
             log.error("login error, requestBody: $requestBody", error)
         }

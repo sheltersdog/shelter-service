@@ -11,5 +11,5 @@ data class ShelterJoinUser(
     ),
     val userId: String = "",
     val user: User? = null,
-    val status: Boolean,
+    val status: Boolean = true,
 )

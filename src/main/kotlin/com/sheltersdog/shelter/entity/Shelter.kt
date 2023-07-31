@@ -1,13 +1,10 @@
 package com.sheltersdog.shelter.entity
 
+import com.sheltersdog.address.entity.Address
 import com.sheltersdog.shelter.entity.model.ShelterStatus
 import org.bson.types.ObjectId
-import org.springframework.data.annotation.CreatedDate
 import org.springframework.data.annotation.Id
-import org.springframework.data.annotation.Version
-import org.springframework.data.mongodb.core.mapping.DBRef
 import org.springframework.data.mongodb.core.mapping.Document
-import java.awt.Image
 import java.time.LocalDate
 
 @Document
@@ -20,7 +17,7 @@ data class Shelter(
     val contactNumber: String = "",
     val isPrivateContact: Boolean = true,
 
-    val address: String,
+    val address: Address?,
     val detailAddress: String,
     val x: Double? = null,
     val y: Double? = null,

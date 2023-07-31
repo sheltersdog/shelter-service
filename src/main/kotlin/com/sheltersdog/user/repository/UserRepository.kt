@@ -22,6 +22,10 @@ class UserRepository @Autowired constructor(
         return reactiveMongoTemplate.exists(query, User::class.java)
     }
 
+    fun findById(userId: String): Mono<User> {
+        return reactiveMongoTemplate.findById(userId, User::class.java)
+    }
+
     fun save(user: User): Mono<User> {
         return reactiveMongoTemplate.save(user)
     }
