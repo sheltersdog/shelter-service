@@ -8,10 +8,14 @@ import reactor.core.publisher.Mono
 
 @Repository
 class ShelterRepository @Autowired constructor(
-    val reactiveMongoTemplate: ReactiveMongoTemplate
+    private val reactiveMongoTemplate: ReactiveMongoTemplate
 ) {
     fun save(shelter: Shelter): Mono<Shelter> {
         return reactiveMongoTemplate.save(shelter)
+    }
+
+    fun findById(id: String): Mono<Shelter> {
+        return reactiveMongoTemplate.findById(id, Shelter::class.java)
     }
 
 

@@ -1,24 +1,20 @@
-package com.sheltersdog.shelter.entity
+package com.sheltersdog.shelter.dto.response
 
-import com.sheltersdog.address.entity.Address
+import com.sheltersdog.address.dto.AddressDto
+import com.sheltersdog.shelter.entity.ShelterSns
 import com.sheltersdog.shelter.entity.model.ShelterStatus
-import org.bson.types.ObjectId
-import org.springframework.data.annotation.Id
-import org.springframework.data.mongodb.core.mapping.Document
 import java.time.LocalDate
 
-@Document
-data class Shelter(
-    @Id
-    val id: ObjectId? = null,
+data class ShelterDto(
+    val id: String,
     val name: String,
     val profileImageUrl: String,
 
     val contactNumber: String? = null,
     val isPrivateContact: Boolean = true,
 
-    val address: Address? = null,
-    val detailAddress: String,
+    val address: AddressDto? = null,
+    val detailAddress: String? = null,
     val x: Double? = null,
     val y: Double? = null,
     val isPrivateDetailAddress: Boolean = true,
@@ -40,7 +36,7 @@ data class Shelter(
     val isVolunteerRecruiting: Boolean = false,
     val isDonationPossible: Boolean = false,
 
-    val sheltersAdmins: List<ShelterJoinUser> = listOf(),
+    val sheltersAdmins: List<ShelterJoinUserDto>? = null,
 
     val createdDate: LocalDate? = null,
     val modifyDate: LocalDate? = null,

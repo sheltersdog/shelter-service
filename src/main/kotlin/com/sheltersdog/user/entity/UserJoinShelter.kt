@@ -6,7 +6,10 @@ import com.sheltersdog.shelter.entity.model.ShelterAuthority
 data class UserJoinShelter(
     val userId: String,
     val shelterId: String,
-    val name: String = "",
+    val username: String,
+    val userEmail: String,
+    val shelterName: String,
+
     val authorities: List<ShelterAuthority> = listOf(
         ShelterAuthority.GALLERY_VIEW
     ),

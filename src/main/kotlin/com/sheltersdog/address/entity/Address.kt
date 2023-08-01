@@ -13,12 +13,12 @@ data class Address(
     val id: ObjectId? = null,
 
     @Indexed(unique = true)
-    val regionCd: Long = 0,
-    val regionName: String = "",
+    val regionCd: Long,
+    val regionName: String,
     val type: AddressType = AddressType.SIDO,
 
-    val sidoCd: String = "",
-    val sidoName: String = "",
+    val sidoCd: String,
+    val sidoName: String,
     val sggCd: String? = null,
     val sggName: String? = null,
     val umdCd: String? = null,
@@ -26,7 +26,7 @@ data class Address(
     val riCd: String? = null,
     val riName: String? = null,
 
-    val createdDate: LocalDate,
+    val createdDate: LocalDate? = null,
     val deletedDate: LocalDate? = null,
 )
 

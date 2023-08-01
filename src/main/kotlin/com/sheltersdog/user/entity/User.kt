@@ -10,10 +10,10 @@ import java.time.LocalDate
 data class User(
     @Id
     val id: ObjectId? = null,
-    val oauthId: String = "",
-    val name: String = "",
-    val nickname: String = "",
-    val profileImageUrl: String = "",
+    val oauthId: String,
+    val name: String,
+    val nickname: String,
+    val profileImageUrl: String,
 
     val status: UserStatus = UserStatus.ACTIVE,
     val userJoinShelters: List<UserJoinShelter> = listOf(),

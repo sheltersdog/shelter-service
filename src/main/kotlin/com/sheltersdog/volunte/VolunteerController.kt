@@ -3,12 +3,12 @@ package com.sheltersdog.volunte
 import com.sheltersdog.volunte.dto.request.GetVolunteerCategoriesRequest
 import com.sheltersdog.volunte.dto.request.GetVolunteersRequest
 import com.sheltersdog.volunte.dto.request.PostCrawlingVolunteer
-import com.sheltersdog.volunte.dto.response.VolunteeerDto
+import com.sheltersdog.volunte.dto.request.PostVolunteer
+import com.sheltersdog.volunte.dto.response.VolunteerDto
 import com.sheltersdog.volunte.entity.CrawlingVolunteer
 import jakarta.validation.Valid
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.*
-import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 
 @RestController
@@ -18,7 +18,7 @@ class VolunteerController @Autowired constructor(val volunteerService: Volunteer
     @GetMapping("/list")
     fun getVolunteers(
         requestMono: Mono<GetVolunteersRequest>
-    ): Mono<List<VolunteeerDto>> {
+    ): Mono<List<VolunteerDto>> {
         return requestMono.flatMap {
             volunteerService.getVolunteers(it)
         }
@@ -36,6 +36,13 @@ class VolunteerController @Autowired constructor(val volunteerService: Volunteer
         return requestMono.flatMap {
             volunteerService.getVolunteerCategories(it)
         }
+    }
+
+    @PostMapping
+    fun postVolunteer(
+        @Valid @RequestBody requestMono: Mono<PostVolunteer>
+    ): Mono<List<VolunteerDto>> {
+        return requestMono.flatMap { requestBody -> volunteerService.postVolunteer(requestBody) }
     }
 
 
