@@ -7,7 +7,9 @@ import com.sheltersdog.core.properties.GatewayProperties
 import com.sheltersdog.core.security.jwt.JwtProvider
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.core.io.buffer.DataBuffer
+import org.springframework.http.HttpMethod
 import org.springframework.http.HttpStatus
+import org.springframework.http.server.reactive.ServerHttpRequest
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
 import org.springframework.security.core.Authentication
 import org.springframework.security.core.authority.SimpleGrantedAuthority
@@ -39,12 +41,30 @@ class JwtFilter @Autowired constructor(
             }
         }
 
+
         val authorizationWrapper = exchange.request.headers[AUTHORIZATION]
-        if (authorizationWrapper.isNullOrEmpty()) return chain.filter(exchange)
+
+        if (authorizationWrapper.isNullOrEmpty()) {
+            if (checkRequiredJwtApi(exchange.request)) {
+                return filterChainError(exchange, "인증 토큰이 존재하지 않습니다.")
+            }
+
+            return chain.filter(exchange)
+        }
 
         val jwt = getJwt(authorizationWrapper.first())
         saveContextAuthentication(jwt)
         return chain.filter(exchange)
+    }
+
+    private fun checkRequiredJwtApi(request: ServerHttpRequest): Boolean {
+        if (
+            (request.method == HttpMethod.GET
+                    && !request.uri.path.startsWith("/private")) ||
+            request.uri.path.startsWith("/public")
+        ) return false
+
+        return true
     }
 
     private fun filterChainError(exchange: ServerWebExchange, message: String): Mono<Void> {
