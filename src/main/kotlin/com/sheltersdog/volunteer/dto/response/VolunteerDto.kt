@@ -1,8 +1,8 @@
-package com.sheltersdog.volunte.dto.response
+package com.sheltersdog.volunteer.dto.response
 
 import com.sheltersdog.address.dto.AddressDto
 import com.sheltersdog.shelter.dto.response.ShelterDto
-import com.sheltersdog.volunte.entity.model.SourceType
+import com.sheltersdog.volunteer.entity.model.SourceType
 
 data class VolunteerDto(
     val id: String,

@@ -1,4 +1,4 @@
-package com.sheltersdog.volunte.dto.request
+package com.sheltersdog.volunteer.dto.request
 
 data class GetVolunteersRequest(
     val page: Int = 0,

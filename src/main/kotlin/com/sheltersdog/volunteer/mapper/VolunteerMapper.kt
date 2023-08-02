@@ -1,12 +1,12 @@
-package com.sheltersdog.volunte.mapper
+package com.sheltersdog.volunteer.mapper
 
 import com.sheltersdog.address.dto.AddressDto
 import com.sheltersdog.address.mapper.addressToDto
 import com.sheltersdog.core.util.localDateToKoreanFormat
 import com.sheltersdog.shelter.dto.response.ShelterDto
 import com.sheltersdog.shelter.mapper.shelterToDto
-import com.sheltersdog.volunte.dto.response.VolunteerDto
-import com.sheltersdog.volunte.entity.Volunteer
+import com.sheltersdog.volunteer.dto.response.VolunteerDto
+import com.sheltersdog.volunteer.entity.Volunteer
 
 fun volunteerToDto(
     entity: Volunteer,

@@ -1,9 +1,8 @@
-package com.sheltersdog.volunte.repository
+package com.sheltersdog.volunteer.repository
 
 import com.sheltersdog.address.entity.Address
 import com.sheltersdog.core.util.yyyyMMddToLocalDate
-import com.sheltersdog.volunte.entity.CrawlingVolunteer
-import com.sheltersdog.volunte.entity.Volunteer
+import com.sheltersdog.volunteer.entity.Volunteer
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.data.domain.Pageable
 import org.springframework.data.mongodb.core.ReactiveMongoTemplate

@@ -1,11 +1,9 @@
-package com.sheltersdog.volunte
+package com.sheltersdog.volunteer
 
-import com.sheltersdog.volunte.dto.request.GetVolunteerCategoriesRequest
-import com.sheltersdog.volunte.dto.request.GetVolunteersRequest
-import com.sheltersdog.volunte.dto.request.PostCrawlingVolunteer
-import com.sheltersdog.volunte.dto.request.PostVolunteer
-import com.sheltersdog.volunte.dto.response.VolunteerDto
-import com.sheltersdog.volunte.entity.CrawlingVolunteer
+import com.sheltersdog.volunteer.dto.request.GetVolunteerCategoriesRequest
+import com.sheltersdog.volunteer.dto.request.GetVolunteersRequest
+import com.sheltersdog.volunteer.dto.request.PostVolunteer
+import com.sheltersdog.volunteer.dto.response.VolunteerDto
 import jakarta.validation.Valid
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.*

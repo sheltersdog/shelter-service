@@ -1,4 +1,4 @@
-package com.sheltersdog.volunte.entity.model
+package com.sheltersdog.volunteer.entity.model
 
 enum class SourceType {
     SERVICE,

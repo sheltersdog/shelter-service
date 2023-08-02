@@ -1,6 +1,6 @@
-package com.sheltersdog.volunte.dto.request
+package com.sheltersdog.volunteer.dto.request
 
-import com.sheltersdog.volunte.entity.model.SourceType
+import com.sheltersdog.volunteer.entity.model.SourceType
 import jakarta.validation.constraints.NotEmpty
 import jakarta.validation.constraints.NotNull
 import org.hibernate.validator.constraints.Range

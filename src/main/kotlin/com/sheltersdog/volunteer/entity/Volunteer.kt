@@ -1,14 +1,13 @@
-package com.sheltersdog.volunte.entity
+package com.sheltersdog.volunteer.entity
 
 import com.sheltersdog.address.entity.Address
 import com.sheltersdog.shelter.entity.Shelter
-import com.sheltersdog.volunte.entity.model.SourceType
+import com.sheltersdog.volunteer.entity.model.SourceType
 import org.bson.types.ObjectId
 import org.hibernate.validator.constraints.Range
 import org.springframework.data.annotation.Id
 import org.springframework.data.mongodb.core.mapping.Document
 import java.time.LocalDate
-import java.time.LocalTime
 
 @Document
 data class Volunteer (

@@ -1,4 +1,4 @@
-package com.sheltersdog.volunte.dto.request
+package com.sheltersdog.volunteer.dto.request
 
 import jakarta.validation.constraints.NotBlank
 import jakarta.validation.constraints.NotEmpty

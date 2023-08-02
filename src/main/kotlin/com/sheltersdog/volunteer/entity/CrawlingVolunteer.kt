@@ -1,4 +1,4 @@
-package com.sheltersdog.volunte.entity
+package com.sheltersdog.volunteer.entity
 
 import com.sheltersdog.address.entity.Address
 import org.bson.types.ObjectId

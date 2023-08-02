@@ -1,18 +1,17 @@
-package com.sheltersdog.volunte
+package com.sheltersdog.volunteer
 
 import com.sheltersdog.core.exception.SheltersdogException
-import com.sheltersdog.core.util.HHmmToLocalTime
 import com.sheltersdog.core.util.yyyyMMddToLocalDate
 import com.sheltersdog.shelter.entity.Shelter
 import com.sheltersdog.shelter.repository.ShelterRepository
-import com.sheltersdog.volunte.dto.request.GetVolunteerCategoriesRequest
-import com.sheltersdog.volunte.dto.request.GetVolunteersRequest
-import com.sheltersdog.volunte.dto.request.PostVolunteer
-import com.sheltersdog.volunte.dto.response.VolunteerDto
-import com.sheltersdog.volunte.entity.Volunteer
-import com.sheltersdog.volunte.entity.model.SourceType
-import com.sheltersdog.volunte.mapper.volunteerToDto
-import com.sheltersdog.volunte.repository.VolunteerRepository
+import com.sheltersdog.volunteer.dto.request.GetVolunteerCategoriesRequest
+import com.sheltersdog.volunteer.dto.request.GetVolunteersRequest
+import com.sheltersdog.volunteer.dto.request.PostVolunteer
+import com.sheltersdog.volunteer.dto.response.VolunteerDto
+import com.sheltersdog.volunteer.entity.Volunteer
+import com.sheltersdog.volunteer.entity.model.SourceType
+import com.sheltersdog.volunteer.mapper.volunteerToDto
+import com.sheltersdog.volunteer.repository.VolunteerRepository
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.data.domain.PageRequest
 import org.springframework.data.domain.Sort
