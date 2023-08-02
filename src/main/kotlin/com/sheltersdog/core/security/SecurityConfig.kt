@@ -5,6 +5,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.http.HttpMethod
+import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity
 import org.springframework.security.config.web.server.ServerHttpSecurity
 import org.springframework.security.core.GrantedAuthority
 import org.springframework.security.core.authority.SimpleGrantedAuthority
@@ -23,6 +24,7 @@ import org.springframework.web.cors.reactive.UrlBasedCorsConfigurationSource
  * https://sthwin.tistory.com/24
  */
 @Configuration
+@EnableWebFluxSecurity
 class SecurityConfig @Autowired constructor(
     val corsProperties: CorsProperties,
 ) {
@@ -39,16 +41,22 @@ class SecurityConfig @Autowired constructor(
 
     @Bean
     fun securityFilterChain(http: ServerHttpSecurity): SecurityWebFilterChain {
-        return http.securityMatcher(
-            PathPatternParserServerWebExchangeMatcher("/**", HttpMethod.GET)
-        ).authorizeExchange {
-            it.pathMatchers(HttpMethod.GET, "/**").permitAll()
-            it.pathMatchers(HttpMethod.PUT, "/**").permitAll()
-            it.pathMatchers(HttpMethod.POST, "/**").permitAll()
-            it.pathMatchers(HttpMethod.DELETE, "/**").permitAll()
-        }.build()
-    }
+        return http
+            .csrf { it.disable() }
+            .securityMatcher(
+                PathPatternParserServerWebExchangeMatcher("/**")
+            ).authorizeExchange { exchanges ->
+                exchanges.pathMatchers(HttpMethod.GET, "/private/**").hasRole("ROLE_USER")
+                exchanges.pathMatchers(HttpMethod.PUT, "/public/**").permitAll()
+                exchanges.pathMatchers(HttpMethod.POST, "/public/**").permitAll()
+                exchanges.pathMatchers(HttpMethod.DELETE, "/public/**").permitAll()
 
+                exchanges.pathMatchers(HttpMethod.GET, "/**").permitAll()
+                exchanges.pathMatchers(HttpMethod.PUT, "/**").hasRole("ROLE_USER")
+                exchanges.pathMatchers(HttpMethod.POST, "/**").hasRole("ROLE_USER")
+                exchanges.pathMatchers(HttpMethod.DELETE, "/**").hasRole("ROLE_USER")
+            }.build()
+    }
 
     @Bean
     fun passwordEncoder(): PasswordEncoder {
