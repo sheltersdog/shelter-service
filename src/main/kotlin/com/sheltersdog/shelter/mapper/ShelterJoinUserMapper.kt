@@ -10,6 +10,7 @@ fun shelterJoinUserToDto(entity: ShelterJoinUser): ShelterJoinUserDto {
         authorities = entity.authorities,
         userId = entity.userId,
         email = entity.email,
+        profileImageUrl = entity.profileImageUrl,
         status = entity.status,
     )
 }

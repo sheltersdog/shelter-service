@@ -10,5 +10,6 @@ data class ShelterJoinUser(
     val userId: String,
     val email: String,
     val user: User? = null,
+    val profileImageUrl: String,
     val status: Boolean = true,
 )

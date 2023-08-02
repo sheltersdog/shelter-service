@@ -3,9 +3,11 @@ package com.sheltersdog.shelter
 import com.sheltersdog.address.repository.AddressRepository
 import com.sheltersdog.core.exception.SheltersdogException
 import com.sheltersdog.shelter.dto.request.PostShelterRequest
+import com.sheltersdog.shelter.dto.response.ShelterDto
 import com.sheltersdog.shelter.entity.Shelter
 import com.sheltersdog.shelter.entity.ShelterJoinUser
 import com.sheltersdog.shelter.entity.model.ShelterAuthority
+import com.sheltersdog.shelter.mapper.shelterToDto
 import com.sheltersdog.shelter.repository.ShelterRepository
 import com.sheltersdog.user.entity.User
 import com.sheltersdog.user.entity.model.UserStatus
@@ -26,7 +28,7 @@ class ShelterService @Autowired constructor(
 ) {
     val log: Logger = LoggerFactory.getLogger(this::class.java)
 
-    fun postShelter(requestBody: PostShelterRequest, userId: String): Mono<Void> {
+    fun postShelter(requestBody: PostShelterRequest, userId: String): Mono<ShelterDto> {
         var admin: User? = null
         return userRepository.findById(userId)
             .flatMap { user ->
@@ -34,40 +36,42 @@ class ShelterService @Autowired constructor(
                 admin = user
                 addressRepository.getAddressByRegionCode(requestBody.regionCode)
             }.flatMap { address ->
-                shelterRepository.save(
-                    Shelter(
-                        name = requestBody.name,
-                        profileImageUrl = requestBody.profileImageUrl,
-                        contactNumber = requestBody.contactNumber,
-                        isPrivateContact = requestBody.isPrivateContact,
-                        address = address,
-                        detailAddress = requestBody.detailAddress,
-                        x = requestBody.x,
-                        y = requestBody.x,
-                        isPrivateDetailAddress = requestBody.isPrivateDetailAddress,
-                        shelterSns = requestBody.shelterSns,
-                        representativeSns = requestBody.representativeSns,
-                        donationPath = requestBody.donationPath,
-                        donationUsageHistoryLink = requestBody.donationUsageHistoryLink,
-                        isDonationPossible = requestBody.donationPath.isNotBlank(),
-                        sheltersAdmins = listOf(
-                            ShelterJoinUser(
-                                userId = admin!!.id.toString(),
-                                name = admin!!.name,
-                                nickname = admin!!.nickname,
-                                email = admin!!.email,
-                                authorities = listOf(ShelterAuthority.ADMIN),
-                            )
-                        ),
-                        createdDate = LocalDate.now(),
-                        modifyDate = LocalDate.now()
-                    )
+                val shelter = Shelter(
+                    name = requestBody.name,
+                    profileImageUrl = requestBody.profileImageUrl,
+                    contactNumber = requestBody.contactNumber,
+                    isPrivateContact = requestBody.isPrivateContact,
+                    address = address,
+                    detailAddress = requestBody.detailAddress,
+                    x = requestBody.x,
+                    y = requestBody.x,
+                    isPrivateDetailAddress = requestBody.isPrivateDetailAddress,
+                    shelterSns = requestBody.shelterSns,
+                    representativeSns = requestBody.representativeSns,
+                    donationPath = requestBody.donationPath,
+                    donationUsageHistoryLink = requestBody.donationUsageHistoryLink,
+                    isDonationPossible = requestBody.donationPath != null,
+                    sheltersAdmins = listOf(
+                        ShelterJoinUser(
+                            userId = admin!!.id.toString(),
+                            name = admin!!.name,
+                            nickname = admin!!.nickname,
+                            email = admin!!.email,
+                            authorities = listOf(ShelterAuthority.ADMIN),
+                            profileImageUrl = admin!!.profileImageUrl,
+                        )
+                    ),
+                    createdDate = LocalDate.now(),
+                    modifyDate = LocalDate.now(),
+                    searchKeyword = ""
                 )
-            }.switchIfEmpty {
+                shelterRepository.save(shelter.copy(searchKeyword = shelter.toString()))
+            }.map { shelter -> shelterToDto(shelter, isIncludeAddress = true) }
+            .switchIfEmpty {
                 Mono.defer {
                     Mono.error { throw SheltersdogException("Shelter 등록에 실패했습니다.") }
                 }
-            }.then().doOnError { error ->
+            }.doOnError { error ->
                 log.error("post shelter error, requestBody: $requestBody & userId: $userId", error)
             }
     }

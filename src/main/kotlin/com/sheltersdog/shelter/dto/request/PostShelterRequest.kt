@@ -22,8 +22,8 @@ data class PostShelterRequest(
     @field:NotNull
     val representativeSns: ShelterSns,
 
-    val donationPath: String = "",
-    val donationUsageHistoryLink: String = "",
+    val donationPath: String? = null,
+    val donationUsageHistoryLink: String? = null,
 
     val isPrivateDetailAddress: Boolean = true,
 )

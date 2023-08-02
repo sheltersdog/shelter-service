@@ -1,6 +1,7 @@
 package com.sheltersdog.shelter
 
 import com.sheltersdog.shelter.dto.request.PostShelterRequest
+import com.sheltersdog.shelter.dto.response.ShelterDto
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.security.core.Authentication
 import org.springframework.security.core.annotation.AuthenticationPrincipal
@@ -22,7 +23,7 @@ class ShelterController @Autowired constructor(
     @PostMapping
     fun postShelter(
         @RequestBody requestBody: PostShelterRequest
-    ): Mono<Void> {
+    ): Mono<ShelterDto> {
         return shelterService.postShelter(
             requestBody,
             (SecurityContextHolder.getContext().authentication.principal as User).username

@@ -8,5 +8,6 @@ data class ShelterJoinUserDto(
     val authorities: List<ShelterAuthority>,
     val userId: String,
     val email: String,
+    val profileImageUrl: String,
     val status: Boolean = true,
 )

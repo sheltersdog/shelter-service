@@ -44,4 +44,6 @@ data class Shelter(
 
     val createdDate: LocalDate? = null,
     val modifyDate: LocalDate? = null,
+
+    val searchKeyword: String,
 )
