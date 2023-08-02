@@ -60,8 +60,8 @@ class JwtFilter @Autowired constructor(
     private fun checkRequiredJwtApi(request: ServerHttpRequest): Boolean {
         if (
             (request.method == HttpMethod.GET
-                    && !request.uri.path.startsWith("/private")) ||
-            request.uri.path.startsWith("/public")
+                    && !request.uri.path.endsWith("/private")) ||
+            request.uri.path.endsWith("/public")
         ) return false
 
         return true
