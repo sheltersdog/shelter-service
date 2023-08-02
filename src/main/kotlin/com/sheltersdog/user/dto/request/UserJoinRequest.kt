@@ -4,6 +4,7 @@ import com.sheltersdog.core.model.SocialType
 import jakarta.validation.constraints.NotBlank
 
 data class UserJoinRequest(
+    val name: String? = null,
     @field:NotBlank
     val oauthId: String,
     @field:NotBlank

@@ -18,5 +18,4 @@ class ShelterRepository @Autowired constructor(
         return reactiveMongoTemplate.findById(id, Shelter::class.java)
     }
 
-
 }

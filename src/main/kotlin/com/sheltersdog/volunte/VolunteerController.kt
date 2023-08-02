@@ -15,6 +15,13 @@ import reactor.core.publisher.Mono
 @RequestMapping("/volunteer")
 class VolunteerController @Autowired constructor(val volunteerService: VolunteerService) {
 
+    @PostMapping
+    fun postVolunteer(
+        @Valid @RequestBody requestMono: Mono<PostVolunteer>
+    ): Mono<VolunteerDto> {
+        return requestMono.flatMap { requestBody -> volunteerService.postVolunteer(requestBody) }
+    }
+
     @GetMapping("/list")
     fun getVolunteers(
         requestMono: Mono<GetVolunteersRequest>
@@ -24,25 +31,11 @@ class VolunteerController @Autowired constructor(val volunteerService: Volunteer
         }
     }
 
-    @PostMapping("/crawling")
-    fun postCrawlingVolunteer(@Valid @RequestBody requestMono: Mono<PostCrawlingVolunteer>): Mono<CrawlingVolunteer> {
-        return requestMono.flatMap {
-            volunteerService.postCrawlingVolunteer(it)
-        }
-    }
-
     @GetMapping("/category/list")
     fun getVolunteerCategories(requestMono: Mono<GetVolunteerCategoriesRequest>): Mono<Array<String>> {
         return requestMono.flatMap {
             volunteerService.getVolunteerCategories(it)
         }
-    }
-
-    @PostMapping
-    fun postVolunteer(
-        @Valid @RequestBody requestMono: Mono<PostVolunteer>
-    ): Mono<List<VolunteerDto>> {
-        return requestMono.flatMap { requestBody -> volunteerService.postVolunteer(requestBody) }
     }
 
 

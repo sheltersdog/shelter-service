@@ -28,7 +28,7 @@ class OauthService @Autowired constructor(
             }.flatMap { body ->
                 log.debug("body: $body")
                 kakaoUserInfoDto = body
-                userRepository.isExistUser(body.id, body.kakaoAccount.email, UserStatus.ACTIVE)
+                userRepository.isExistUser(body.id.toString(), body.kakaoAccount.email, UserStatus.ACTIVE)
             }.mapNotNull { isExist ->
                 kakaoUserInfoDto?.copy(isShelterUser = isExist)
             }.switchIfEmpty {

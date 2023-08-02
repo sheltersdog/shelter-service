@@ -52,10 +52,11 @@ class ShelterService @Autowired constructor(
                         isDonationPossible = requestBody.donationPath.isNotBlank(),
                         sheltersAdmins = listOf(
                             ShelterJoinUser(
+                                userId = admin!!.id.toString(),
                                 name = admin!!.name,
                                 nickname = admin!!.nickname,
+                                email = admin!!.email,
                                 authorities = listOf(ShelterAuthority.ADMIN),
-                                userId = admin!!.id.toString(),
                             )
                         ),
                         createdDate = LocalDate.now(),

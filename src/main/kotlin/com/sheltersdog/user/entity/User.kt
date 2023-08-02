@@ -1,5 +1,6 @@
 package com.sheltersdog.user.entity
 
+import com.sheltersdog.core.model.SocialType
 import com.sheltersdog.user.entity.model.UserStatus
 import org.bson.types.ObjectId
 import org.springframework.data.annotation.Id
@@ -10,8 +11,10 @@ import java.time.LocalDate
 data class User(
     @Id
     val id: ObjectId? = null,
-    val oauthId: String,
-    val name: String,
+    val socialType: SocialType,
+    val kakaoOauthId: String? = null,
+    val email: String,
+    val name: String? = null,
     val nickname: String,
     val profileImageUrl: String,
 

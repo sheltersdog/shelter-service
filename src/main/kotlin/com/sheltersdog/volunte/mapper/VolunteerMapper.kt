@@ -3,7 +3,6 @@ package com.sheltersdog.volunte.mapper
 import com.sheltersdog.address.dto.AddressDto
 import com.sheltersdog.address.mapper.addressToDto
 import com.sheltersdog.core.util.localDateToKoreanFormat
-import com.sheltersdog.core.util.localTimeKoreanFormat
 import com.sheltersdog.shelter.dto.response.ShelterDto
 import com.sheltersdog.shelter.mapper.shelterToDto
 import com.sheltersdog.volunte.dto.response.VolunteerDto
@@ -24,6 +23,7 @@ fun volunteerToDto(
 
     return VolunteerDto(
         id = entity.id.toString(),
+        sourceType = entity.sourceType,
         shelterName = entity.shelterName,
         isShort = entity.isShort,
         categories = entity.categories,
@@ -31,8 +31,8 @@ fun volunteerToDto(
         isAlwaysRecruiting = entity.isAlwaysRecruiting,
         startDate = entity.startDate?.let { localDateToKoreanFormat(it) },
         endDate = entity.endDate?.let { localDateToKoreanFormat(it) },
-        startTime = entity.startTime?.let { localTimeKoreanFormat(it) },
-        endTime = entity.endTime?.let { localTimeKoreanFormat(it) },
+        startTime = entity.startTime,
+        endTime = entity.endTime,
         content = entity.content,
         shelterId = entity.shelterId,
         shelter = shelter,

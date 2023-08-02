@@ -31,13 +31,16 @@ data class Volunteer (
     val isAlwaysRecruiting: Boolean = false,
     val startDate: LocalDate? = null,
     val endDate: LocalDate? = null,
-    val startTime: LocalTime? = null,
-    val endTime: LocalTime? = null,
+    val startTime: String? = null,
+    val endTime: String? = null,
     val days: List<String> = listOf(),
 
     val content: String? = null,
     val url: String? = null,
 
-    @field:Range(min = 10_000_000_00, max = 1_00_000_000_00) val arriveRegionCode: Long? = null,
+    @field:Range(min = 10_000_000_00, max = 1_00_000_000_00)
+    val arriveRegionCode: Long? = null,
     val arriveDetailAddress: String? = null,
+
+    val searchKeyword: String,
 )

@@ -2,9 +2,11 @@ package com.sheltersdog.volunte.dto.response
 
 import com.sheltersdog.address.dto.AddressDto
 import com.sheltersdog.shelter.dto.response.ShelterDto
+import com.sheltersdog.volunte.entity.model.SourceType
 
 data class VolunteerDto(
     val id: String,
+    val sourceType: SourceType = SourceType.SERVICE,
     val shelterName: String,
     val isShort: Boolean,
     val categories: List<String>,

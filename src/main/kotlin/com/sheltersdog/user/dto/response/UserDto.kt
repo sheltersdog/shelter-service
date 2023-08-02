@@ -5,7 +5,7 @@ import com.sheltersdog.user.entity.model.UserStatus
 
 data class UserDto(
     val id: String,
-    val name: String,
+    val name: String? = null,
     val nickname: String,
     val profileImageUrl: String,
 
