@@ -5,27 +5,22 @@ import com.sheltersdog.foreverdog.dto.request.PostForeverdogRequest
 import com.sheltersdog.foreverdog.dto.response.ForeverdogDto
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.*
-import reactor.core.publisher.Mono
 
 @RestController
 @RequestMapping("/foreverdog")
 class ForeverdogController @Autowired constructor(
     private val foreverdogService: ForeverdogService,
-){
+) {
 
     @PostMapping
-    fun postForeverdog(@RequestBody requestBody: Mono<PostForeverdogRequest>): Mono<ForeverdogDto> {
-        return requestBody.flatMap(foreverdogService::postForeverdog)
+    suspend fun postForeverdog(@RequestBody requestBody: PostForeverdogRequest): ForeverdogDto {
+        return foreverdogService.postForeverdog(requestBody)
     }
 
     @GetMapping("/list")
-    fun getForeverdogs(requestParam: Mono<GetForeverdogsRequest>): Mono<List<ForeverdogDto>> {
-        return requestParam.flatMap(foreverdogService::getForeverdogs)
+    suspend fun getForeverdogs(requestParam: GetForeverdogsRequest): List<ForeverdogDto> {
+        return foreverdogService.getForeverdogs(requestParam)
     }
-
-
-
-
 
 
 }

@@ -21,8 +21,6 @@ import org.springframework.data.domain.Sort
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.security.core.userdetails.User
 import org.springframework.stereotype.Service
-import reactor.core.publisher.Mono
-import reactor.kotlin.core.publisher.switchIfEmpty
 
 @Service
 class VolunteerService @Autowired constructor(
@@ -31,66 +29,70 @@ class VolunteerService @Autowired constructor(
 ) {
     val log = LoggerFactory.getLogger(this::class.java)
 
-    fun postVolunteer(requestBody: PostVolunteer): Mono<VolunteerDto> {
-        val mono = if (requestBody.sourceType == SourceType.SERVICE) {
+    suspend fun postVolunteer(requestBody: PostVolunteer): VolunteerDto {
+        val shelter = if (requestBody.sourceType == SourceType.SERVICE) {
             shelterRepository.findById(requestBody.shelterId!!)
-        } else Mono.just(false)
+        } else null
 
-        return mono.flatMap { any ->
-            val startDate = requestBody.startDate?.let { yyyyMMddToLocalDate(it) }
-            val endDate = requestBody.endDate?.let { yyyyMMddToLocalDate(it) }
+        val startDate = requestBody.startDate?.let { yyyyMMddToLocalDate(it) }
+        val endDate = requestBody.endDate?.let { yyyyMMddToLocalDate(it) }
 
-            val entity = Volunteer(
-                shelterName = requestBody.shelterName ?: "",
-                sourceType = requestBody.sourceType,
-                shelterId = requestBody.shelterId,
-                isShort = requestBody.isShort,
-                categories = requestBody.categories,
-                regionCode = requestBody.regionCode,
-                detailAddress = requestBody.detailAddress,
-                isPrivateDetailAddress = requestBody.isPrivateDetailAddress,
-                isAlwaysRecruiting = requestBody.isAlwaysRecruiting,
-                startDate = startDate,
-                endDate = endDate,
-                startTime = requestBody.startTime,
-                endTime = requestBody.endTime,
-                days = requestBody.days,
-                content = requestBody.content,
-                url = requestBody.url,
-                arriveRegionCode = requestBody.arriveRegionCode,
-                arriveDetailAddress = requestBody.arriveDetailAddress,
-                searchKeyword = requestBody.toString(),
-            )
+        val entity = Volunteer(
+            shelterName = requestBody.shelterName ?: "",
+            sourceType = requestBody.sourceType,
+            shelterId = requestBody.shelterId,
+            isShort = requestBody.isShort,
+            categories = requestBody.categories,
+            regionCode = requestBody.regionCode,
+            detailAddress = requestBody.detailAddress,
+            isPrivateDetailAddress = requestBody.isPrivateDetailAddress,
+            isAlwaysRecruiting = requestBody.isAlwaysRecruiting,
+            startDate = startDate,
+            endDate = endDate,
+            startTime = requestBody.startTime,
+            endTime = requestBody.endTime,
+            days = requestBody.days,
+            content = requestBody.content,
+            url = requestBody.url,
+            arriveRegionCode = requestBody.arriveRegionCode,
+            arriveDetailAddress = requestBody.arriveDetailAddress,
+            searchKeyword = requestBody.toString(),
+        )
 
-            if (any is Shelter) {
-                val userId = (SecurityContextHolder.getContext().authentication.principal as User).username
-                if (
-                    !hasAuthority(
-                        shelterAdmins = any.sheltersAdmins,
-                        userId = userId,
-                        shelterAuthorities = listOf(ShelterAuthority.ADMIN, ShelterAuthority.DOG_MANAGE)
-                    )
-                ) return@flatMap Mono.empty()
-
-                volunteerRepository.save(
-                    entity.copy(
-                        shelterName = any.name,
-                        searchKeyword = any.toString(),
-                    )
-                )
-            } else {
-                volunteerRepository.save(entity)
-            }
-        }.map { volunteer ->
-            volunteerToDto(volunteer, true)
-        }.switchIfEmpty {
-            Mono.defer { Mono.error { throw SheltersdogException("등록에 실패했습니다.") } }
-        }.doOnError { error ->
-            log.error("fail", error)
-        }
+        val volunteer = saveVolunteer(shelter, entity)
+        return volunteerToDto(volunteer, true)
     }
 
-    fun getVolunteers(requestBody: GetVolunteersRequest): Mono<List<VolunteerDto>> {
+    private suspend fun saveVolunteer(
+        shelter: Shelter?,
+        entity: Volunteer
+    ): Volunteer {
+        val volunteer = if (shelter != null) {
+            val userId = (SecurityContextHolder.getContext().authentication.principal as User).username
+            if (
+                !hasAuthority(
+                    shelterAdmins = shelter.sheltersAdmins,
+                    userId = userId,
+                    shelterAuthorities = listOf(ShelterAuthority.ADMIN, ShelterAuthority.VOLUNTEER_MANAGE)
+                )
+            ) {
+                log.debug("postVolunteer -> $userId is not have authority")
+                throw SheltersdogException("$userId is not have authority(${ShelterAuthority.VOLUNTEER_MANAGE})")
+            }
+
+            volunteerRepository.save(
+                entity.copy(
+                    shelterName = shelter.name,
+                    searchKeyword = shelter.toString(),
+                )
+            )
+        } else {
+            volunteerRepository.save(entity)
+        }
+        return volunteer
+    }
+
+    suspend fun getVolunteers(requestBody: GetVolunteersRequest): List<VolunteerDto> {
         val pageable = PageRequest.of(
             requestBody.page,
             requestBody.size,
@@ -104,26 +106,22 @@ class VolunteerService @Autowired constructor(
             date = requestBody.date,
             pageable = pageable,
             loadAddresses = true,
-        ).map { volunteers ->
-            volunteers.stream()
-                .map { volunteer ->
-                    volunteerToDto(
-                        volunteer,
-                        isIncludeAddress = true
-                    )
-                }
-                .toList()
-        }
+        ).stream().map { volunteer ->
+            volunteerToDto(
+                volunteer,
+                isIncludeAddress = true
+            )
+        }.toList()
     }
 
-    fun getVolunteerCategories(requestParam: GetVolunteerCategoriesRequest): Mono<Array<String>> {
-        return volunteerRepository.getVolunteers(
+    suspend fun getVolunteerCategories(requestParam: GetVolunteerCategoriesRequest): Array<String> {
+        val entities = volunteerRepository.getVolunteers(
             regionCode = requestParam.regionCode,
             date = requestParam.date,
-        ).map { entities ->
-            val categories = mutableSetOf<String>()
-            entities.forEach { entity -> entity.categories.forEach(categories::add) }
-            categories.toTypedArray()
-        }
+        )
+
+        val categories = mutableSetOf<String>()
+        entities.forEach { entity -> entity.categories.forEach(categories::add) }
+        return categories.toTypedArray()
     }
 }

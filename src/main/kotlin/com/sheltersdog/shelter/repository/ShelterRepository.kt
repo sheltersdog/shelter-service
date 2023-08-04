@@ -1,6 +1,7 @@
 package com.sheltersdog.shelter.repository
 
 import com.sheltersdog.shelter.entity.Shelter
+import kotlinx.coroutines.reactive.awaitSingle
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.data.mongodb.core.ReactiveMongoTemplate
 import org.springframework.stereotype.Repository
@@ -10,12 +11,12 @@ import reactor.core.publisher.Mono
 class ShelterRepository @Autowired constructor(
     private val reactiveMongoTemplate: ReactiveMongoTemplate
 ) {
-    fun save(shelter: Shelter): Mono<Shelter> {
-        return reactiveMongoTemplate.save(shelter)
+    suspend fun save(shelter: Shelter): Shelter {
+        return reactiveMongoTemplate.save(shelter).awaitSingle()
     }
 
-    fun findById(id: String): Mono<Shelter> {
-        return reactiveMongoTemplate.findById(id, Shelter::class.java)
+    suspend fun findById(id: String): Shelter {
+        return reactiveMongoTemplate.findById(id, Shelter::class.java).awaitSingle()
     }
 
 }

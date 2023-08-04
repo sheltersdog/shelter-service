@@ -7,34 +7,27 @@ import com.sheltersdog.volunteer.dto.response.VolunteerDto
 import jakarta.validation.Valid
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.*
-import reactor.core.publisher.Mono
 
 @RestController
 @RequestMapping("/volunteer")
 class VolunteerController @Autowired constructor(val volunteerService: VolunteerService) {
 
     @PostMapping
-    fun postVolunteer(
-        @Valid @RequestBody requestMono: Mono<PostVolunteer>
-    ): Mono<VolunteerDto> {
-        return requestMono.flatMap { requestBody -> volunteerService.postVolunteer(requestBody) }
+    suspend fun postVolunteer(
+        @Valid @RequestBody requestBody: PostVolunteer
+    ): VolunteerDto {
+        return volunteerService.postVolunteer(requestBody)
     }
 
     @GetMapping("/list")
-    fun getVolunteers(
-        requestMono: Mono<GetVolunteersRequest>
-    ): Mono<List<VolunteerDto>> {
-        return requestMono.flatMap {
-            volunteerService.getVolunteers(it)
-        }
+    suspend fun getVolunteers(
+        requestParam: GetVolunteersRequest
+    ): List<VolunteerDto> {
+        return volunteerService.getVolunteers(requestParam)
     }
 
     @GetMapping("/category/list")
-    fun getVolunteerCategories(requestMono: Mono<GetVolunteerCategoriesRequest>): Mono<Array<String>> {
-        return requestMono.flatMap {
-            volunteerService.getVolunteerCategories(it)
-        }
+    suspend fun getVolunteerCategories(requestParam: GetVolunteerCategoriesRequest): Array<String> {
+        return volunteerService.getVolunteerCategories(requestParam)
     }
-
-
 }

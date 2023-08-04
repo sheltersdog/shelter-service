@@ -12,7 +12,6 @@ import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.ControllerAdvice
 import org.springframework.web.bind.annotation.ExceptionHandler
-import reactor.core.publisher.Mono
 import java.io.PrintWriter
 import java.io.StringWriter
 
@@ -23,7 +22,7 @@ class SheltersdogExceptionHandler @Autowired constructor(
     val log = LoggerFactory.getLogger(this::class.java)
 
     @ExceptionHandler(Exception::class)
-    fun handleException(e: Exception): Mono<ResponseEntity<Any>> {
+    suspend fun handleException(e: Exception): ResponseEntity<Any> {
         if (activeProperties.active != "prod") {
             val message = getPrintStackTrace(e)
             log.error(message)
@@ -37,46 +36,30 @@ class SheltersdogExceptionHandler @Autowired constructor(
             is IncorrectClaimException,
             is MissingClaimException -> handleAuthorizationException(e)
 
-            else -> Mono.just(
-                ResponseEntity.internalServerError()
-                    .body(e.message)
-            )
+            else -> ResponseEntity.internalServerError()
+                .body(e.message)
         }
     }
 
-    fun handleSheltersdogException(
+    suspend fun handleSheltersdogException(
         e: SheltersdogException
-    ): Mono<ResponseEntity<Any>> {
-
-        return Mono.just(
-            ResponseEntity
-                .status(e.httpStatus)
-                .body(e.message)
-        )
+    ): ResponseEntity<Any> {
+        return ResponseEntity.status(e.httpStatus).body(e.message)
     }
 
     @ExceptionHandler(ValidationException::class)
-    fun handleValidationException(e: ValidationException): Mono<ResponseEntity<Any>> {
-        return Mono.just(
-            ResponseEntity.badRequest()
-                .body(e.message)
-        )
+    fun handleValidationException(e: ValidationException): ResponseEntity<Any> {
+        return ResponseEntity.badRequest().body(e.message)
     }
 
     @ExceptionHandler(DataIntegrityViolationException::class)
-    fun handleDataIntegrityViolationException(e: DataIntegrityViolationException): Mono<ResponseEntity<Any>> {
-        return Mono.just(
-            ResponseEntity.badRequest()
-                .body(e.message)
-        )
+    fun handleDataIntegrityViolationException(e: DataIntegrityViolationException): ResponseEntity<Any> {
+        return ResponseEntity.badRequest().body(e.message)
     }
 
     @ExceptionHandler(ExpiredJwtException::class, IncorrectClaimException::class, MissingClaimException::class)
-    fun handleAuthorizationException(e: Exception): Mono<ResponseEntity<Any>> {
-        return Mono.just(
-            ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                .body(e.message)
-        )
+    fun handleAuthorizationException(e: Exception): ResponseEntity<Any> {
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(e.message)
     }
 
     private fun getPrintStackTrace(e: Exception): String {

@@ -24,57 +24,45 @@ class UserService @Autowired constructor(
 ) {
     val log: Logger = LoggerFactory.getLogger(this::class.java)
 
-    fun postUser(requestBody: UserJoinRequest): Mono<JwtDto> {
+    suspend fun postUser(requestBody: UserJoinRequest): JwtDto {
         val nickname = requestBody.nickname.ifBlank { "서비스 유저" }
         val profileImageUrl =
             requestBody.profileImageUrl.ifBlank { "https://www.figma.com/file/CB5J2Dd0r2H3DkQB10L3Up/%EC%9C%A0%EB%B0%98-Copy?type=design&node-id=253-6834&mode=design&t=u9UAAyYULdZwPhRU-4" }
 
-        return userRepository.isExistUser(requestBody.oauthId, requestBody.email, UserStatus.ACTIVE)
-            .flatMap { isExist ->
-                if (isExist) return@flatMap Mono.empty()
+        val isExist = userRepository.isExistUser(requestBody.oauthId, requestBody.email, UserStatus.ACTIVE)
+        if (isExist) {
+            log.debug("fun postUser -> Alreay exist user, requestBody: $requestBody")
+            throw SheltersdogException("이미 가입된 유저입니다.")
+        }
 
-                val kakaoOauthId = if (requestBody.socialType == SocialType.KAKAO) {
-                    requestBody.oauthId
-                } else null
+        val kakaoOauthId = if (requestBody.socialType == SocialType.KAKAO) {
+            requestBody.oauthId
+        } else null
 
-                return@flatMap userRepository.save(
-                    User(
-                        socialType = requestBody.socialType,
-                        kakaoOauthId = kakaoOauthId,
-                        name = requestBody.name,
-                        email = requestBody.email,
-                        nickname = nickname,
-                        profileImageUrl = profileImageUrl,
-                        status = UserStatus.ACTIVE,
-                        createdDate = LocalDate.now(),
-                        modifyDate = LocalDate.now(),
-                        isAgreeServiceTerm = true,
-                        serviceTermAgreeDate = LocalDate.now(),
-                    )
-                )
-            }.map { user ->
-                jwtProvider.generateToken(id = user.id.toString())
-            }.switchIfEmpty {
-                Mono.defer {
-                    Mono.error { throw SheltersdogException("Join Error...!!") }
-                }
-            }.doOnError { error ->
-                log.error("join error, requestBody: $requestBody", error)
-            }
+        val user = userRepository.save(
+            User(
+                socialType = requestBody.socialType,
+                kakaoOauthId = kakaoOauthId,
+                name = requestBody.name,
+                email = requestBody.email,
+                nickname = nickname,
+                profileImageUrl = profileImageUrl,
+                status = UserStatus.ACTIVE,
+                createdDate = LocalDate.now(),
+                modifyDate = LocalDate.now(),
+                isAgreeServiceTerm = true,
+                serviceTermAgreeDate = LocalDate.now(),
+            )
+        )
+        return jwtProvider.generateToken(id = user.id.toString())
     }
 
-    fun login(requestBody: UserLoginRequest): Mono<JwtDto> {
-        return userRepository.findByOauthIdAndSocialType(
+    suspend fun login(requestBody: UserLoginRequest): JwtDto {
+        val user = userRepository.findByOauthIdAndSocialType(
             kakaoOauthId = requestBody.oauthId,
             socialType = requestBody.socialType,
-        ).map { user ->
-            jwtProvider.generateToken(id = user.id.toString())
-        }.switchIfEmpty {
-            Mono.defer {
-                Mono.error { throw SheltersdogException("Login Error...!!") }
-            }
-        }.doOnError { error ->
-            log.error("login error, requestBody: $requestBody", error)
-        }
+        )
+
+        return jwtProvider.generateToken(id = user.id.toString())
     }
 }

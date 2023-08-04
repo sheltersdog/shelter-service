@@ -13,7 +13,7 @@ data class Image(
     val id: ObjectId? = null,
     val type: ImageType,
     val filename: String = "",
-    val resizeFilename: String = "",
+    val resizeFilename: String? = null,
 
     val status: ImageStatus = ImageStatus.NOT_CONNECTED,
     val width: Int = 0,

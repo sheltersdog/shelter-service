@@ -3,29 +3,32 @@ package com.sheltersdog.address.repository
 import com.sheltersdog.address.entity.Address
 import com.sheltersdog.address.model.AddressType
 import com.sheltersdog.address.model.getParentPropertyCode
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.reactive.asFlow
+import kotlinx.coroutines.reactive.awaitLast
+import kotlinx.coroutines.reactive.awaitSingle
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.data.mongodb.core.ReactiveMongoTemplate
 import org.springframework.data.mongodb.core.query.Query
 import org.springframework.data.mongodb.core.query.where
 import org.springframework.stereotype.Component
-import reactor.core.publisher.Flux
-import reactor.core.publisher.Mono
+import reactor.kotlin.core.publisher.toMono
 
 @Component
 class AddressRepository @Autowired constructor(
     val reactiveMongoTemplate: ReactiveMongoTemplate
 ) {
 
-    fun getAddresses(
+    suspend fun getAddresses(
         type: AddressType,
         parentCode: String,
-        keyword: String): Flux<Address> {
+        keyword: String): Address {
 
         val query = Query.query(where(Address::type).`is`(type))
         if (parentCode.isBlank() && keyword.isBlank()) {
             return reactiveMongoTemplate.find(
                 query, Address::class.java
-            )
+            ).awaitSingle()
         }
 
         val parentProperty = type.getParentPropertyCode()
@@ -43,21 +46,22 @@ class AddressRepository @Autowired constructor(
         return reactiveMongoTemplate.find(
             query,
             Address::class.java,
-        )
+        ).awaitSingle()
     }
 
-    fun saveAll(addresses: List<Address>) {
-        reactiveMongoTemplate.insertAll(addresses).subscribe()
+    suspend fun saveAll(addresses: List<Address>): Flow<Address> {
+        return reactiveMongoTemplate.insertAll(addresses).asFlow()
     }
 
-    fun getAddressById(id: String): Mono<Address> {
+    suspend fun getAddressById(id: String): Address {
         return reactiveMongoTemplate.findById(id, Address::class.java)
+            .awaitSingle()
     }
 
-    fun getAddressByRegionCode(regionCode: Long): Mono<Address> {
+    suspend fun getAddressByRegionCode(regionCode: Long): Address {
         return reactiveMongoTemplate.findOne(
             Query.query(where(Address::regionCd).`is`(regionCode)),
             Address::class.java
-        )
+        ).awaitSingle()
     }
 }

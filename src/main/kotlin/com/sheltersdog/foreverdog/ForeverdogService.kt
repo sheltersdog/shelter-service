@@ -18,8 +18,6 @@ import org.springframework.data.domain.PageRequest
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.security.core.userdetails.User
 import org.springframework.stereotype.Service
-import reactor.core.publisher.Mono
-import reactor.kotlin.core.publisher.switchIfEmpty
 
 @Service
 class ForeverdogService @Autowired constructor(
@@ -28,53 +26,49 @@ class ForeverdogService @Autowired constructor(
 ) {
     val log: Logger = LoggerFactory.getLogger(this::class.java)
 
-    fun postForeverdog(requestBody: PostForeverdogRequest): Mono<ForeverdogDto> {
+    suspend fun postForeverdog(requestBody: PostForeverdogRequest): ForeverdogDto {
         val userId = (SecurityContextHolder.getContext().authentication.principal as User).username
-        return shelterRepository.findById(requestBody.shelterId).flatMap { shelter ->
-            val hasAuthority = hasAuthority(
-                shelterAdmins = shelter.sheltersAdmins,
-                userId = userId,
-                shelterAuthorities = listOf(ShelterAuthority.ADMIN, ShelterAuthority.DOG_MANAGE)
-            )
 
-            if (!hasAuthority) return@flatMap Mono.empty()
-            Mono.just(true)
-        }.flatMap { _ ->
-            val entity = Foreverdog(
-                shelterId = requestBody.shelterId,
-                status = requestBody.status,
-                announcementId = requestBody.announcementId,
-                profileImageUrl = requestBody.profileImageUrl,
-                gender = requestBody.gender,
-                isNeutering = requestBody.isNeutering,
-                neuteringDate = requestBody.neuteringDate?.let { yyyyMMddToLocalDate(it) },
-                protectedStartDate = requestBody.protectedStartDate?.let { yyyyMMddToLocalDate(it) },
-                name = requestBody.name,
-                birthYear = requestBody.birthYear,
-                breed = requestBody.bread,
-                weight = requestBody.weight,
-                socializationLevel = requestBody.socializationLevel,
-                content = requestBody.content,
-                searchKeyword = "",
-            )
-            foreverdogRepository.save(entity.copy(searchKeyword = entity.toString()))
-        }.map { foreverdog -> foreverdogToDto(foreverdog, true) }
-            .switchIfEmpty {
-                Mono.defer { Mono.error { throw SheltersdogException("등록에 실패하였습니다.") } }
-            }.doOnError { error ->
-                log.error("등록에 실패했습니다. requestBody: $requestBody", error)
-            }
+        val shelter = shelterRepository.findById(requestBody.shelterId)
+        val hasAuthority = hasAuthority(
+            shelterAdmins = shelter.sheltersAdmins,
+            userId = userId,
+            shelterAuthorities = listOf(ShelterAuthority.ADMIN, ShelterAuthority.DOG_MANAGE)
+        )
+
+        if (!hasAuthority) {
+            log.debug("postForeverdog fail -> $userId is not have authority")
+            throw SheltersdogException("$userId is not have authority(${ShelterAuthority.DOG_MANAGE})")
+        }
+
+        val entity = Foreverdog(
+            shelterId = requestBody.shelterId,
+            status = requestBody.status,
+            announcementId = requestBody.announcementId,
+            profileImageUrl = requestBody.profileImageUrl,
+            gender = requestBody.gender,
+            isNeutering = requestBody.isNeutering,
+            neuteringDate = requestBody.neuteringDate?.let { yyyyMMddToLocalDate(it) },
+            protectedStartDate = requestBody.protectedStartDate?.let { yyyyMMddToLocalDate(it) },
+            name = requestBody.name,
+            birthYear = requestBody.birthYear,
+            breed = requestBody.bread,
+            weight = requestBody.weight,
+            socializationLevel = requestBody.socializationLevel,
+            content = requestBody.content,
+            searchKeyword = "",
+        )
+        val foreverdog = foreverdogRepository.save(entity.copy(searchKeyword = entity.toString()))
+        return foreverdogToDto(foreverdog, true)
     }
 
-    fun getForeverdogs(requestParam: GetForeverdogsRequest): Mono<List<ForeverdogDto>> {
-        return foreverdogRepository.getForeverdogs(
+    suspend fun getForeverdogs(requestParam: GetForeverdogsRequest): List<ForeverdogDto> {
+        val foreverdogs = foreverdogRepository.getForeverdogs(
             keyword = requestParam.keyword ?: "",
             pageable = PageRequest.of(requestParam.page, requestParam.size),
             shelterId = requestParam.shelterId,
-        ).map { foreverdogs ->
-            foreverdogs.map { foreverdog -> foreverdogToDto(foreverdog) }
-        }.switchIfEmpty { Mono.just(listOf()) }.doOnError { error ->
-            log.error("조회에 실패했습니다. requestParam: $requestParam", error)
-        }
+        )
+
+        return foreverdogs.map { foreverdog -> foreverdogToDto(foreverdog) }
     }
 }

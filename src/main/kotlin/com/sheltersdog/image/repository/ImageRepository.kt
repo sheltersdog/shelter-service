@@ -2,6 +2,8 @@ package com.sheltersdog.image.repository
 
 import com.mongodb.client.result.DeleteResult
 import com.sheltersdog.image.entity.Image
+import kotlinx.coroutines.reactive.awaitSingle
+import kotlinx.coroutines.reactor.awaitSingle
 import org.bson.types.ObjectId
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.data.mongodb.core.ReactiveMongoTemplate
@@ -13,14 +15,13 @@ class ImageRepository @Autowired constructor(
     val reactiveMongoTemplate: ReactiveMongoTemplate
 ) {
 
-    fun save(image: Image): Mono<Image> {
-        return reactiveMongoTemplate.save(image)
+    suspend fun save(image: Image): Image {
+        return reactiveMongoTemplate.save(image).awaitSingle()
     }
 
-    fun deleteById(id: ObjectId): Mono<DeleteResult> {
-        return reactiveMongoTemplate.findById(id, Image::class.java).flatMap {
-            reactiveMongoTemplate.remove(it)
-        }
+    suspend fun deleteById(id: ObjectId): DeleteResult {
+        val image = reactiveMongoTemplate.findById(id, Image::class.java).awaitSingle()
+        return reactiveMongoTemplate.remove(image).awaitSingle()
     }
 
 }

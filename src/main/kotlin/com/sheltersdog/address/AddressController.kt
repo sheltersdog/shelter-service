@@ -17,21 +17,21 @@ import reactor.core.publisher.Mono
 class AddressController @Autowired constructor(val addressService: AddressService){
 
     @GetMapping("/kakao/search")
-    fun getAddressByKeyword(
+    suspend fun getAddressByKeyword(
         @RequestParam(name = "analyzeType", required = false, defaultValue = "similar") analyzeType: String,
         @RequestParam(name = "page", required = false, defaultValue = "1") page: Int,
         @RequestParam(name = "size", required = false, defaultValue = "10") size: Int,
-        @RequestParam("keyword") keyword: String): Mono<KakaoDocument> {
+        @RequestParam("keyword") keyword: String): KakaoDocument {
         return addressService.getKakaoAddressByKeyword(
             analyzeType, page, size, keyword
         )
     }
 
     @GetMapping("/list")
-    fun getAddress(
+    suspend fun getAddress(
         @RequestParam(name = "type") type: AddressType,
         @RequestParam(name = "parentCode") parentCode: String = "",
-        @RequestParam(name = "keyword") keyword: String = ""): Flux<AddressDto> {
+        @RequestParam(name = "keyword") keyword: String = ""): AddressDto {
         return addressService.getAddresses(
             type, parentCode, keyword
         )

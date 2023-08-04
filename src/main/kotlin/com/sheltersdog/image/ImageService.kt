@@ -8,6 +8,9 @@ import com.sheltersdog.image.entity.Image
 import com.sheltersdog.image.entity.model.ImageStatus
 import com.sheltersdog.image.entity.model.ImageType
 import com.sheltersdog.image.repository.ImageRepository
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.reactive.awaitSingle
+import kotlinx.coroutines.withContext
 import org.apache.commons.imaging.Imaging
 import org.apache.commons.io.FilenameUtils
 import org.bson.types.ObjectId
@@ -16,7 +19,6 @@ import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.codec.multipart.FilePart
 import org.springframework.stereotype.Service
-import reactor.core.publisher.Mono
 import software.amazon.awssdk.services.s3.model.PutObjectResponse
 import java.io.File
 import java.nio.file.Files
@@ -32,62 +34,57 @@ class ImageService @Autowired constructor(
 ) {
     val log: Logger = LoggerFactory.getLogger(this::class.java)
 
-    fun upload(filePart: FilePart): Mono<String> {
-        var key: ObjectId = ObjectId.get()
-
+    suspend fun upload(filePart: FilePart): String {
         val extension = FilenameUtils.getExtension(filePart.filename())
         val filename = FilenameUtils.getBaseName(filePart.filename())
 
         val uuid = UUID.randomUUID().toString()
-        val file = Files.createTempFile(
-            uuid.substring(0, 8), ".${extension}"
-        ).toFile()
-        val resizeFile = Files.createTempFile(
-            uuid.substring(0, 9), ".${extension}"
-        ).toFile()
 
-        return imageRepository.save(
+        val image = imageRepository.save(
             Image(
                 type = ImageType.USER_PROFILE,
                 status = ImageStatus.NOT_CONNECTED
             )
-        ).onErrorResume { error ->
-            Mono.defer {
-                log.error("ImageRepository Save Error", error)
-                Mono.empty()
-            }
-        }.flatMap { image ->
-            key = image.id!!
-            filePart.transferTo(file).onErrorResume { error ->
-                Mono.defer {
-                    log.error("FilePart to File Error!!", error)
-                    imageRepository.deleteById(key).mapNotNull { null }
-                }
-            }.thenReturn(true)
-        }.flatMap {
-            imageSaveS3(file, filename, extension, key)
-        }.flatMap {
-            imageResizeAndSaveS3(file, resizeFile, extension, filename, key)
-        }.flatMap { putObjectResponse ->
-            val thumbFilename = if (putObjectResponse.bucketKeyEnabled() == null) {
+        )
+
+        val file = withContext(Dispatchers.IO) {
+            Files.createTempFile(
+                uuid.substring(0, 8), ".${extension}"
+            )
+        }.toFile()
+        filePart.transferTo(file).awaitSingle()
+        imageSaveS3(file, filename, extension, image.id!!)
+
+
+        val resizeFile = withContext(Dispatchers.IO) {
+            Files.createTempFile(
+                uuid.substring(0, 9), ".${extension}"
+            )
+        }.toFile()
+        var thumbFilename: String? = null
+        try {
+            val putObjectResponse = imageResizeAndSaveS3(file, resizeFile, extension, filename, image.id)
+            thumbFilename = if (putObjectResponse.bucketKeyEnabled() == null) {
                 "thumb_${filename}.${extension}"
             } else {
                 ""
             }
-
-            updateImageEntity(file, key, filename, extension, thumbFilename)
-        }.doFinally {
-            file.delete()
+        } catch (e: Exception) { /* do nothing */ } finally {
             resizeFile.delete()
         }
+
+        val updatedImage = updateImageEntity(file, image.id, filename, extension, thumbFilename)
+        file.delete()
+
+        return updatedImage.url
     }
 
-    private fun imageSaveS3(
+    private suspend fun imageSaveS3(
         file: File,
         filename: String,
         extension: String,
         key: ObjectId
-    ): Mono<PutObjectResponse> {
+    ): PutObjectResponse {
         val metadata = s3MetadataGenerator.generateImageMetadata(
             file, "${filename}.${extension}"
         )
@@ -96,21 +93,16 @@ class ImageService @Autowired constructor(
             filename = "${filename}.${extension}",
             key = key.toString(),
             metadata = metadata
-        ).onErrorResume { error ->
-            Mono.defer {
-                log.error("S3 fileUpload Fail...", error)
-                imageRepository.deleteById(key).mapNotNull { null }
-            }
-        }
+        ).awaitSingle()
     }
 
-    private fun imageResizeAndSaveS3(
+    private suspend fun imageResizeAndSaveS3(
         file: File,
         resizeFile: File,
         extension: String,
         filename: String,
         key: ObjectId
-    ): Mono<PutObjectResponse> {
+    ): PutObjectResponse {
         resizeImage(
             file = file,
             resizeFile = resizeFile,
@@ -124,22 +116,16 @@ class ImageService @Autowired constructor(
             filename = "thumb_${filename}.${extension}",
             key = key.toString(),
             metadata = metadata
-        ).onErrorResume { error ->
-            log.info("S3 resize image fileUpload Fail Error!!")
-            Mono.defer {
-                log.error("S3 resize image fileUpload Fail...", error)
-                Mono.just(PutObjectResponse.builder().build())
-            }
-        }
+        ).awaitSingle()
     }
 
-    private fun updateImageEntity(
+    private suspend fun updateImageEntity(
         file: File,
         key: ObjectId,
         filename: String,
         extension: String,
-        thumbFilename: String
-    ): Mono<String> {
+        thumbFilename: String? = null,
+    ): Image {
         val imageInfo = Imaging.getImageInfo(file)
         return imageRepository.save(
             Image(
@@ -154,12 +140,7 @@ class ImageService @Autowired constructor(
                 size = file.length(),
                 regDate = LocalDateTime.now()
             )
-        ).onErrorResume { error ->
-            Mono.defer {
-                log.error("update file info fail..", error)
-                imageRepository.deleteById(key).mapNotNull { null }
-            }
-        }.map { image -> image.id.toString() }
+        )
     }
 
 }

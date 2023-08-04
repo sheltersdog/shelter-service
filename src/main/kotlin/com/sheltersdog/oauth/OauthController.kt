@@ -16,12 +16,12 @@ class OauthController @Autowired constructor(
 ){
 
     @GetMapping("/kakao")
-    fun redirectKakao(@RequestParam("code") code: String): Mono<KakaoUserInfoDto?> {
+    suspend fun redirectKakao(@RequestParam("code") code: String): KakaoUserInfoDto {
         return oauthService.redirectKakao(code)
     }
 
     @GetMapping("/kakao/leave")
-    fun leaveKakao(
+    suspend fun leaveKakao(
         @RequestParam("user_id") id: Long,
         @RequestParam("referrer_type") referrerType: String,
         @RequestHeader("Authorization") authorization: String,) {
@@ -31,6 +31,7 @@ class OauthController @Autowired constructor(
                 httpStatus = HttpStatus.BAD_REQUEST,
             )
         }
+        oauthService.leaveKakao(id)
     }
 
 }

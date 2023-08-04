@@ -1,9 +1,11 @@
 package com.sheltersdog.oauth
 
+import com.sheltersdog.core.exception.SheltersdogException
 import com.sheltersdog.core.model.AUTHORIZATION
 import com.sheltersdog.core.properties.KakaoProperties
 import com.sheltersdog.oauth.dto.KakaoOauthTokenDto
 import com.sheltersdog.oauth.dto.KakaoUserInfoDto
+import kotlinx.coroutines.reactor.awaitSingle
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
@@ -13,7 +15,8 @@ import org.springframework.util.LinkedMultiValueMap
 import org.springframework.util.MultiValueMap
 import org.springframework.web.reactive.function.BodyInserters
 import org.springframework.web.reactive.function.client.WebClient
-import reactor.core.publisher.Mono
+import org.springframework.web.reactive.function.client.awaitBody
+import org.springframework.web.reactive.function.client.awaitExchange
 
 @Component
 class OauthClient @Autowired constructor(
@@ -22,7 +25,7 @@ class OauthClient @Autowired constructor(
 ) {
     val log = LoggerFactory.getLogger(this::class.java)
 
-    fun getKakaoToken(code: String): Mono<KakaoOauthTokenDto> {
+    suspend fun getKakaoToken(code: String): KakaoOauthTokenDto {
         val grantType = "authorization_code"
         val body: MultiValueMap<String, String> = LinkedMultiValueMap()
         body.add("grant_type", grantType)
@@ -36,15 +39,20 @@ class OauthClient @Autowired constructor(
             .headers { headers ->
                 headers[AUTHORIZATION] = "KakaoAK ${kakaoProperties.adminKey}"
             }.accept(MediaType.APPLICATION_JSON)
-            .exchangeToMono { response ->
+            .awaitExchange { response ->
+                // body를 nullable로 설정할지 고민 필요
                 if (response.statusCode() == HttpStatus.OK) {
-                    return@exchangeToMono response.bodyToMono(KakaoOauthTokenDto::class.java)
+                    return@awaitExchange response.toEntity(KakaoOauthTokenDto::class.java)
+                        .awaitSingle()
+                        .body!!
                 }
-                Mono.empty()
+
+                log.error("getKakaoToken -> getKakaoToken fail. statusCode: ${response.statusCode()}, body: ${response.awaitBody<Any>()}")
+                throw SheltersdogException("카카오 토큰을 조회하는데 실패하였습니다.")
             }
     }
 
-    fun getKakaoUserInfo(accessToken: String): Mono<KakaoUserInfoDto> {
+    suspend fun getKakaoUserInfo(accessToken: String): KakaoUserInfoDto {
         val body: MultiValueMap<String, String> = LinkedMultiValueMap()
         body.add("secure_resource", "true")
 
@@ -54,11 +62,16 @@ class OauthClient @Autowired constructor(
             .headers { headers ->
                 headers[AUTHORIZATION] = "Bearer $accessToken"
             }.accept(MediaType.APPLICATION_JSON)
-            .exchangeToMono { response ->
+            .awaitExchange { response ->
+                // TODO body를 nullable로 설정할지 고민 필요
                 if (response.statusCode() == HttpStatus.OK) {
-                    return@exchangeToMono response.bodyToMono(KakaoUserInfoDto::class.java)
+                    return@awaitExchange response.toEntity(KakaoUserInfoDto::class.java)
+                        .awaitSingle()
+                        .body!!
                 }
-                Mono.empty()
+
+                log.error("getKakaoUserInfo -> getKakaoTUserInfo fail. request accessToken: $accessToken, statusCode: ${response.statusCode()}, body: ${response.awaitBody<Any>()}")
+                throw SheltersdogException("카카오 유저를 조회하는데 실패하였습니다.")
             }
     }
 }
