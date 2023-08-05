@@ -23,18 +23,19 @@ class ShelterRepository @Autowired constructor(
         return reactiveMongoTemplate.findById(id, Shelter::class.java).awaitSingleOrNull()
     }
 
-    suspend fun updateVolunteerCount(
+    suspend fun updateById(
         id: String,
-        volunteerActiveCount: Int,
-        volunteerTotalCount: Int,
+        updateFields: Map<String, Any>
     ): UpdateResult {
+        var update = Update()
+        updateFields.keys.map { key ->
+            update = update.set(key, updateFields[key])
+        }
+
         return reactiveMongoTemplate.updateFirst(
             Query.query(
                 where(Shelter::id).`is`(id)
-            ),
-            Update().set(Shelter::volunteerActiveCount.name, volunteerActiveCount)
-                .set(Shelter::volunteerTotalCount.name, volunteerTotalCount),
-            Shelter::class.java
+            ), update, Shelter::class.java
         ).awaitSingle()
     }
 
