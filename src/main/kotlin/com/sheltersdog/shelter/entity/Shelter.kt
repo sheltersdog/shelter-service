@@ -34,7 +34,7 @@ data class Shelter(
     val volunteerTotalCount: Int = 0,
     val volunteerActiveCount: Int = 0,
     val volunteerInactiveCount: Int = 0,
-    val sheltersdogCount: Int = 0,
+    val foreverdogCount: Int = 0,
     val sheltersAdminCount: Int = 1,
 
     val isVolunteerRecruiting: Boolean = false,

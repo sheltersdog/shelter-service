@@ -48,7 +48,7 @@ fun shelterToDto(
         volunteerTotalCount = entity.volunteerTotalCount,
         volunteerActiveCount = entity.volunteerActiveCount,
         volunteerInactiveCount = entity.volunteerInactiveCount,
-        sheltersdogCount = entity.sheltersdogCount,
+        foreverdogCount = entity.foreverdogCount,
         sheltersAdminCount = entity.sheltersAdminCount,
 
         isVolunteerRecruiting = entity.isVolunteerRecruiting,
