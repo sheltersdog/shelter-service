@@ -13,7 +13,7 @@ import org.springframework.http.server.reactive.ServerHttpRequest
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
 import org.springframework.security.core.Authentication
 import org.springframework.security.core.authority.SimpleGrantedAuthority
-import org.springframework.security.core.context.SecurityContextHolder
+import org.springframework.security.core.context.ReactiveSecurityContextHolder
 import org.springframework.security.core.userdetails.User
 import org.springframework.stereotype.Component
 import org.springframework.util.StringUtils
@@ -21,6 +21,7 @@ import org.springframework.web.server.ServerWebExchange
 import org.springframework.web.server.WebFilter
 import org.springframework.web.server.WebFilterChain
 import reactor.core.publisher.Mono
+import reactor.util.context.Context
 
 @Component
 class JwtFilter @Autowired constructor(
@@ -53,8 +54,10 @@ class JwtFilter @Autowired constructor(
         }
 
         val jwt = getJwt(authorizationWrapper.first())
-        saveContextAuthentication(jwt)
-        return chain.filter(exchange)
+        val securityContext = getContext(jwt)
+
+        return if (securityContext != null) chain.filter(exchange).contextWrite { securityContext }
+        else chain.filter(exchange)
     }
 
     private fun checkRequiredJwtApi(request: ServerHttpRequest): Boolean {
@@ -82,11 +85,11 @@ class JwtFilter @Autowired constructor(
     }
 
 
-    private fun saveContextAuthentication(jwt: String) {
-        if (!StringUtils.hasText(jwt)) return
+    private fun getContext(jwt: String): Context? {
+        if (!StringUtils.hasText(jwt)) return null
         val id: String = jwtProvider.getId(jwt)
         val authentication = generateAuthentication(jwt, id)
-        SecurityContextHolder.getContext().authentication = authentication
+        return ReactiveSecurityContextHolder.withAuthentication(authentication)
     }
 
     private fun generateAuthentication(jwt: String, id: String): Authentication {
