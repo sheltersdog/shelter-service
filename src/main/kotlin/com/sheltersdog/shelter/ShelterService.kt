@@ -14,6 +14,8 @@ import com.sheltersdog.user.repository.UserRepository
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.security.core.context.SecurityContextHolder
+import org.springframework.security.core.userdetails.User
 import org.springframework.stereotype.Service
 import java.time.LocalDate
 
@@ -25,10 +27,11 @@ class ShelterService @Autowired constructor(
 ) {
     val log: Logger = LoggerFactory.getLogger(this::class.java)
 
-    suspend fun postShelter(requestBody: PostShelterRequest, userId: String): ShelterDto {
+    suspend fun postShelter(requestBody: PostShelterRequest): ShelterDto {
+        val userId = (SecurityContextHolder.getContext().authentication.principal as User).username
         val user = userRepository.findById(userId)
-        if (user.status != UserStatus.ACTIVE) {
-            log.debug("postShelter -> user status is not ${UserStatus.ACTIVE}: $userId")
+        if (user == null || user.status != UserStatus.ACTIVE) {
+            log.debug("postShelter -> user's status is not ${UserStatus.ACTIVE}: $userId")
             throw SheltersdogException("$userId is not ${UserStatus.ACTIVE} user")
         }
 
@@ -65,6 +68,15 @@ class ShelterService @Autowired constructor(
 
         val copyShelter = shelterRepository.save(shelter.copy(searchKeyword = shelter.toString()))
         return shelterToDto(copyShelter, isIncludeAddress = true)
+    }
+
+    suspend fun getShelter(id: String): ShelterDto {
+        val shelter = shelterRepository.findById(id)
+        if (shelter == null) {
+            log.debug("shelterId: $id is not exist")
+            throw SheltersdogException("존재하지 않는 보호소입니다.")
+        }
+        return shelterToDto(shelter, isIncludeAddress = true)
     }
 
 

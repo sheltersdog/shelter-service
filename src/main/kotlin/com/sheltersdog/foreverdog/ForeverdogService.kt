@@ -30,6 +30,11 @@ class ForeverdogService @Autowired constructor(
         val userId = (SecurityContextHolder.getContext().authentication.principal as User).username
 
         val shelter = shelterRepository.findById(requestBody.shelterId)
+
+        if (shelter == null) {
+            log.debug("shelterId: ${requestBody.shelterId} 조회에 실패하였습니다. \nrequestBody: $requestBody \n userId: $userId")
+            throw SheltersdogException("존재하지 않는 보호소입니다.")
+        }
         val hasAuthority = hasAuthority(
             shelterAdmins = shelter.sheltersAdmins,
             userId = userId,
