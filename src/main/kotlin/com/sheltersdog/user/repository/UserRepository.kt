@@ -25,7 +25,7 @@ class UserRepository @Autowired constructor(
         return reactiveMongoTemplate.exists(query, User::class.java).awaitSingle()
     }
 
-    suspend fun findById(userId: String): User {
+    suspend fun findById(userId: String): User? {
         return reactiveMongoTemplate.findById(userId, User::class.java).awaitSingle()
     }
 

@@ -5,7 +5,6 @@ import kotlinx.coroutines.reactive.awaitSingle
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.data.mongodb.core.ReactiveMongoTemplate
 import org.springframework.stereotype.Repository
-import reactor.core.publisher.Mono
 
 @Repository
 class ShelterRepository @Autowired constructor(
@@ -15,7 +14,7 @@ class ShelterRepository @Autowired constructor(
         return reactiveMongoTemplate.save(shelter).awaitSingle()
     }
 
-    suspend fun findById(id: String): Shelter {
+    suspend fun findById(id: String): Shelter? {
         return reactiveMongoTemplate.findById(id, Shelter::class.java).awaitSingle()
     }
 
