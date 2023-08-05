@@ -5,6 +5,7 @@ import com.sheltersdog.shelter.entity.Shelter
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.reactive.asFlow
 import kotlinx.coroutines.reactor.awaitSingle
+import kotlinx.coroutines.reactor.awaitSingleOrNull
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.data.domain.Pageable
 import org.springframework.data.mongodb.core.ReactiveMongoTemplate
@@ -18,6 +19,10 @@ class ForeverdogRepository @Autowired constructor(
 ) {
     suspend fun save(entity: Foreverdog): Foreverdog {
         return reactiveMongoTemplate.save(entity).awaitSingle()
+    }
+
+    suspend fun findById(foreverdogId: String): Foreverdog? {
+        return reactiveMongoTemplate.findById(foreverdogId, Foreverdog::class.java).awaitSingleOrNull()
     }
 
     suspend fun getForeverdogs(

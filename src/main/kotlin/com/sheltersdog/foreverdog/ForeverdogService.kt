@@ -1,5 +1,6 @@
 package com.sheltersdog.foreverdog
 
+import com.sheltersdog.core.event.EventBus
 import com.sheltersdog.core.exception.SheltersdogException
 import com.sheltersdog.core.util.yyyyMMddToLocalDate
 import com.sheltersdog.foreverdog.dto.request.GetForeverdogsRequest
@@ -9,13 +10,15 @@ import com.sheltersdog.foreverdog.entity.Foreverdog
 import com.sheltersdog.foreverdog.mapper.foreverdogToDto
 import com.sheltersdog.foreverdog.repository.ForeverdogRepository
 import com.sheltersdog.shelter.entity.model.ShelterAuthority
+import com.sheltersdog.shelter.event.SaveForeverdogEvent
 import com.sheltersdog.shelter.repository.ShelterRepository
 import com.sheltersdog.shelter.util.hasAuthority
+import kotlinx.coroutines.reactive.awaitSingle
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.data.domain.PageRequest
-import org.springframework.security.core.context.SecurityContextHolder
+import org.springframework.security.core.context.ReactiveSecurityContextHolder
 import org.springframework.security.core.userdetails.User
 import org.springframework.stereotype.Service
 
@@ -27,8 +30,7 @@ class ForeverdogService @Autowired constructor(
     val log: Logger = LoggerFactory.getLogger(this::class.java)
 
     suspend fun postForeverdog(requestBody: PostForeverdogRequest): ForeverdogDto {
-        val userId = (SecurityContextHolder.getContext().authentication.principal as User).username
-
+        val userId = (ReactiveSecurityContextHolder.getContext().awaitSingle().authentication.principal as User).username
         val shelter = shelterRepository.findById(requestBody.shelterId)
 
         if (shelter == null) {
@@ -64,6 +66,7 @@ class ForeverdogService @Autowired constructor(
             searchKeyword = "",
         )
         val foreverdog = foreverdogRepository.save(entity.copy(searchKeyword = entity.toString()))
+        EventBus.publish(SaveForeverdogEvent(foreverdogId = foreverdog.id.toString()))
         return foreverdogToDto(foreverdog, true)
     }
 
