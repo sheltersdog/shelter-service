@@ -1,6 +1,7 @@
 package com.sheltersdog.shelter.event
 
 import com.sheltersdog.core.event.EventBus
+import com.sheltersdog.shelter.entity.Shelter
 import com.sheltersdog.shelter.repository.ShelterRepository
 import com.sheltersdog.volunteer.repository.VolunteerRepository
 import jakarta.annotation.PostConstruct
@@ -25,7 +26,7 @@ class SaveVolunteerEventListener @Autowired constructor(
 
     @PostConstruct
     fun handleSaveVolunteer() {
-        CoroutineScope(Dispatchers.IO).launch {
+        CoroutineScope(Dispatchers.Default).launch {
             EventBus.subscribe { event: SaveVolunteerEvent ->
                 log.debug("handleSaveVolunteer start: $event")
                 CoroutineScope(Dispatchers.IO).launch {
@@ -42,10 +43,12 @@ class SaveVolunteerEventListener @Autowired constructor(
                         return@launch
                     }
 
-                    shelterRepository.updateVolunteerCount(
+                    shelterRepository.updateById(
                         id = volunteer.shelterId,
-                        volunteerActiveCount = shelter.volunteerActiveCount + 1,
-                        volunteerTotalCount = shelter.volunteerTotalCount + 1,
+                        updateFields = mapOf(
+                            Pair(Shelter::volunteerActiveCount.name, shelter.volunteerActiveCount + 1),
+                            Pair(Shelter::volunteerTotalCount.name, shelter.volunteerTotalCount + 1)
+                        )
                     )
                 }
             }
