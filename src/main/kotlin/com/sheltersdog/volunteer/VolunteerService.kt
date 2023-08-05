@@ -1,9 +1,11 @@
 package com.sheltersdog.volunteer
 
+import com.sheltersdog.core.event.EventBus
 import com.sheltersdog.core.exception.SheltersdogException
 import com.sheltersdog.core.util.yyyyMMddToLocalDate
 import com.sheltersdog.shelter.entity.Shelter
 import com.sheltersdog.shelter.entity.model.ShelterAuthority
+import com.sheltersdog.shelter.event.SaveVolunteerEvent
 import com.sheltersdog.shelter.repository.ShelterRepository
 import com.sheltersdog.shelter.util.hasAuthority
 import com.sheltersdog.volunteer.dto.request.GetVolunteerCategoriesRequest
@@ -14,11 +16,13 @@ import com.sheltersdog.volunteer.entity.Volunteer
 import com.sheltersdog.volunteer.entity.model.SourceType
 import com.sheltersdog.volunteer.mapper.volunteerToDto
 import com.sheltersdog.volunteer.repository.VolunteerRepository
+import kotlinx.coroutines.reactive.awaitSingle
+import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.data.domain.PageRequest
 import org.springframework.data.domain.Sort
-import org.springframework.security.core.context.SecurityContextHolder
+import org.springframework.security.core.context.ReactiveSecurityContextHolder
 import org.springframework.security.core.userdetails.User
 import org.springframework.stereotype.Service
 
@@ -27,12 +31,13 @@ class VolunteerService @Autowired constructor(
     val volunteerRepository: VolunteerRepository,
     val shelterRepository: ShelterRepository,
 ) {
-    val log = LoggerFactory.getLogger(this::class.java)
+    val log: Logger = LoggerFactory.getLogger(this::class.java)
 
     suspend fun postVolunteer(requestBody: PostVolunteer): VolunteerDto {
         val shelter = if (requestBody.sourceType == SourceType.SERVICE) {
             shelterRepository.findById(requestBody.shelterId!!)
         } else null
+        log.debug("postVolunteer start, shelter: $shelter")
 
         val startDate = requestBody.startDate?.let { yyyyMMddToLocalDate(it) }
         val endDate = requestBody.endDate?.let { yyyyMMddToLocalDate(it) }
@@ -67,12 +72,12 @@ class VolunteerService @Autowired constructor(
         shelter: Shelter?,
         entity: Volunteer
     ): Volunteer {
+        val userId = (ReactiveSecurityContextHolder.getContext().awaitSingle().authentication.principal as User).username
         val volunteer = if (shelter != null) {
-            val userId = (SecurityContextHolder.getContext().authentication.principal as User).username
             if (
                 !hasAuthority(
                     shelterAdmins = shelter.sheltersAdmins,
-                    userId = userId,
+                    userId = userId!!,
                     shelterAuthorities = listOf(ShelterAuthority.ADMIN, ShelterAuthority.VOLUNTEER_MANAGE)
                 )
             ) {
@@ -80,12 +85,14 @@ class VolunteerService @Autowired constructor(
                 throw SheltersdogException("$userId is not have authority(${ShelterAuthority.VOLUNTEER_MANAGE})")
             }
 
-            volunteerRepository.save(
+            val saveEntity = volunteerRepository.save(
                 entity.copy(
                     shelterName = shelter.name,
                     searchKeyword = shelter.toString(),
                 )
             )
+            EventBus.publish(SaveVolunteerEvent(volunteerId = saveEntity.id.toString()))
+            saveEntity
         } else {
             volunteerRepository.save(entity)
         }

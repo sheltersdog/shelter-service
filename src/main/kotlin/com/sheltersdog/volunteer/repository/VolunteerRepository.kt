@@ -6,6 +6,7 @@ import com.sheltersdog.volunteer.entity.Volunteer
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.reactive.asFlow
 import kotlinx.coroutines.reactor.awaitSingle
+import kotlinx.coroutines.reactor.awaitSingleOrNull
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.data.domain.Pageable
 import org.springframework.data.mongodb.core.ReactiveMongoTemplate
@@ -22,6 +23,10 @@ class VolunteerRepository @Autowired constructor(
 
     suspend fun save(entity: Volunteer): Volunteer {
         return reactiveMongoTemplate.save(entity).awaitSingle()
+    }
+
+    suspend fun findById(id: String): Volunteer? {
+        return reactiveMongoTemplate.findById(id, Volunteer::class.java).awaitSingleOrNull()
     }
 
     suspend fun getVolunteers(
