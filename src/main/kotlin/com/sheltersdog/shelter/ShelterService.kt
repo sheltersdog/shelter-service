@@ -11,10 +11,11 @@ import com.sheltersdog.shelter.mapper.shelterToDto
 import com.sheltersdog.shelter.repository.ShelterRepository
 import com.sheltersdog.user.entity.model.UserStatus
 import com.sheltersdog.user.repository.UserRepository
+import kotlinx.coroutines.reactive.awaitSingle
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.security.core.context.SecurityContextHolder
+import org.springframework.security.core.context.ReactiveSecurityContextHolder
 import org.springframework.security.core.userdetails.User
 import org.springframework.stereotype.Service
 import java.time.LocalDate
@@ -28,7 +29,7 @@ class ShelterService @Autowired constructor(
     val log: Logger = LoggerFactory.getLogger(this::class.java)
 
     suspend fun postShelter(requestBody: PostShelterRequest): ShelterDto {
-        val userId = (SecurityContextHolder.getContext().authentication.principal as User).username
+        val userId = (ReactiveSecurityContextHolder.getContext().awaitSingle().authentication.principal as User).username
         val user = userRepository.findById(userId)
         if (user == null || user.status != UserStatus.ACTIVE) {
             log.debug("postShelter -> user's status is not ${UserStatus.ACTIVE}: $userId")
