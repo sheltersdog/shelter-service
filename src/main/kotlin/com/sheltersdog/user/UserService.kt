@@ -13,8 +13,6 @@ import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
-import reactor.core.publisher.Mono
-import reactor.kotlin.core.publisher.switchIfEmpty
 import java.time.LocalDate
 
 @Service
@@ -31,7 +29,7 @@ class UserService @Autowired constructor(
 
         val isExist = userRepository.isExistUser(requestBody.oauthId, requestBody.email, UserStatus.ACTIVE)
         if (isExist) {
-            log.debug("fun postUser -> Alreay exist user, requestBody: $requestBody")
+            log.debug("fun postUser -> Already exist user, requestBody: $requestBody")
             throw SheltersdogException("이미 가입된 유저입니다.")
         }
 
@@ -62,6 +60,11 @@ class UserService @Autowired constructor(
             kakaoOauthId = requestBody.oauthId,
             socialType = requestBody.socialType,
         )
+
+        if (user == null) {
+            log.debug("login info is wrong. requestBody: $requestBody")
+            throw SheltersdogException("존재하지 않는 유저입니다.")
+        }
 
         return jwtProvider.generateToken(id = user.id.toString())
     }

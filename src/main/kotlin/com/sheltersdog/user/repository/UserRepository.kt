@@ -1,17 +1,18 @@
 package com.sheltersdog.user.repository
 
 import com.mongodb.client.result.UpdateResult
-import com.sheltersdog.core.dto.JwtDto
 import com.sheltersdog.core.model.SocialType
 import com.sheltersdog.user.entity.User
 import com.sheltersdog.user.entity.model.UserStatus
 import kotlinx.coroutines.reactor.awaitSingle
+import kotlinx.coroutines.reactor.awaitSingleOrNull
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.data.mongodb.core.ReactiveMongoTemplate
-import org.springframework.data.mongodb.core.query.*
-import org.springframework.data.mongodb.core.updateMulti
+import org.springframework.data.mongodb.core.query.Query
+import org.springframework.data.mongodb.core.query.Update
+import org.springframework.data.mongodb.core.query.and
+import org.springframework.data.mongodb.core.query.where
 import org.springframework.stereotype.Repository
-import reactor.core.publisher.Mono
 
 @Repository
 class UserRepository @Autowired constructor(
@@ -33,14 +34,14 @@ class UserRepository @Autowired constructor(
         return reactiveMongoTemplate.save(user).awaitSingle()
     }
 
-    suspend fun findByOauthIdAndSocialType(kakaoOauthId: String, socialType: SocialType): User {
+    suspend fun findByOauthIdAndSocialType(kakaoOauthId: String, socialType: SocialType): User? {
         return reactiveMongoTemplate.findOne(
             Query.query(
                 where(User::kakaoOauthId).`is`(kakaoOauthId)
                     .and(User::socialType).`is`(socialType)
                     .and(User::status).`is`(UserStatus.ACTIVE)
             ), User::class.java
-        ).awaitSingle()
+        ).awaitSingleOrNull()
     }
 
     suspend fun changeAllUserStatusByOauthIdAndSocialType(kakaoOauthId: String, socialType: SocialType): UpdateResult? {
