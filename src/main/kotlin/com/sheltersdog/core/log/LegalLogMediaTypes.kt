@@ -9,4 +9,5 @@ val legalLogMediaTypes = listOf(
     MediaType.APPLICATION_JSON_UTF8,
     MediaType.TEXT_PLAIN,
     MediaType.TEXT_XML,
+    MediaType.valueOf("text/plain;charset=UTF-8"),
 )

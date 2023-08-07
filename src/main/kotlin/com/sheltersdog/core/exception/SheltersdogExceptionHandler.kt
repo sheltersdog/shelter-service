@@ -37,7 +37,7 @@ class SheltersdogExceptionHandler @Autowired constructor(
             is MissingClaimException -> handleAuthorizationException(e)
 
             else -> ResponseEntity.internalServerError()
-                .body(e.message)
+                .body(e.message?:"에러가 발생하였습니다.")
         }
     }
 
@@ -49,17 +49,17 @@ class SheltersdogExceptionHandler @Autowired constructor(
 
     @ExceptionHandler(ValidationException::class)
     fun handleValidationException(e: ValidationException): ResponseEntity<Any> {
-        return ResponseEntity.badRequest().body(e.message)
+        return ResponseEntity.badRequest().body(e.message?:"에러가 발생하였습니다.")
     }
 
     @ExceptionHandler(DataIntegrityViolationException::class)
     fun handleDataIntegrityViolationException(e: DataIntegrityViolationException): ResponseEntity<Any> {
-        return ResponseEntity.badRequest().body(e.message)
+        return ResponseEntity.badRequest().body(e.message?:"에러가 발생하였습니다.")
     }
 
     @ExceptionHandler(ExpiredJwtException::class, IncorrectClaimException::class, MissingClaimException::class)
     fun handleAuthorizationException(e: Exception): ResponseEntity<Any> {
-        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(e.message)
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(e.message?:"에러가 발생하였습니다.")
     }
 
     private fun getPrintStackTrace(e: Exception): String {
