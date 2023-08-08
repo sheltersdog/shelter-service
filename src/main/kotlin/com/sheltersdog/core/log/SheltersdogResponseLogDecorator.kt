@@ -1,5 +1,6 @@
 package com.sheltersdog.core.log
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import org.reactivestreams.Publisher
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -10,7 +11,11 @@ import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 import reactor.core.scheduler.Schedulers.single
 
-class SheltersdogResponseLogDecorator(delegate: ServerHttpResponse, private val logId: String) :
+class SheltersdogResponseLogDecorator(
+    delegate: ServerHttpResponse,
+    private val objectMapper: ObjectMapper,
+    private val logId: String,
+) :
     ServerHttpResponseDecorator(delegate) {
     val log: Logger = LoggerFactory.getLogger(this::class.java)
     private var copyBody: ByteArray? = null
@@ -44,9 +49,15 @@ class SheltersdogResponseLogDecorator(delegate: ServerHttpResponse, private val 
 
     private fun logging(publisher: Mono<Void>): Mono<Void> {
         return publisher.doFinally {
-            val body = if (this.copyBody != null) """, "body": ${this.copyBody!!.decodeToString()}""" else ""
             log.info(
-                """{"logId":"$logId","LogType":"Response", "logTime": ${System.nanoTime()}, "headers": [$headers]$body}""".trimIndent()
+                objectMapper.writeValueAsString(
+                    ResponseLog(
+                        id = logId,
+                        headers = headers,
+                        code = delegate.statusCode?.value() ?: -1,
+                        body = copyBody?.decodeToString(),
+                    )
+                )
             )
         }
     }
