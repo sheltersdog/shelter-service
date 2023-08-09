@@ -58,20 +58,23 @@ class SheltersdogResponseLogDecorator(
     private fun logging() {
         CoroutineScope(Dispatchers.IO).launch {
             val traces = mutableListOf<String>()
-            MDC.getCopyOfContextMap()["order"]?.toInt()?.let { order ->
-                for (i in 0 until order) {
-                    traces.add("$i: ${MDC.get(i.toString())}")
+            val contextMap = MDC.getCopyOfContextMap()
+            contextMap?.let { context ->
+                context["order"]?.toInt()?.let { order ->
+                    for (i in 0 until order) {
+                        traces.add("$i: ${MDC.get(i.toString())}")
+                    }
                 }
-            }
 
-            log.info(
-                objectMapper.writeValueAsString(
-                    TraceLog(
-                        id = logId,
-                        traces = traces,
+                log.info(
+                    objectMapper.writeValueAsString(
+                        TraceLog(
+                            id = logId,
+                            traces = traces,
+                        )
                     )
                 )
-            )
+            }
         }
         log.info(
             objectMapper.writeValueAsString(
