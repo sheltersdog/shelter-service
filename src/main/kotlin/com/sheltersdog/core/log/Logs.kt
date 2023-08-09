@@ -8,7 +8,7 @@ import org.springframework.util.MultiValueMap
 @JsonInclude(JsonInclude.Include.NON_NULL)
 data class RequestLog(
     val id: String,
-    val logType: String = "REQUEST",
+    val logType: LogType = LogType.REQUEST,
     val headers: HttpHeaders,
     val logTime: Long = System.nanoTime(),
     val method: String,
@@ -19,7 +19,7 @@ data class RequestLog(
 
 data class ResponseLog(
     val id: String,
-    val logType: String = "RESPONSE",
+    val logType: LogType = LogType.RESPONSE,
     val code: Int = HttpStatus.OK.value(),
     val headers: HttpHeaders,
     val logTime: Long = System.nanoTime(),
@@ -27,12 +27,16 @@ data class ResponseLog(
 
 data class ResponseBodyLog(
     val id: String,
-    val logType: String = "RESPONSE_BODY",
+    val logType: LogType = LogType.RESPONSE_BODY,
     val body: String,
 )
 
 data class TraceLog(
     val id: String,
-    val logType: String = "TRACE",
+    val logType: LogType = LogType.TRACE,
     val traces: List<String>,
 )
+
+enum class LogType {
+    REQUEST, RESPONSE, RESPONSE_BODY, TRACE,
+}

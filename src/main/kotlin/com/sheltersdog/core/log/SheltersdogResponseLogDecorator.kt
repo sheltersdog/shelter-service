@@ -19,8 +19,7 @@ class SheltersdogResponseLogDecorator(
     delegate: ServerHttpResponse,
     private val objectMapper: ObjectMapper,
     private val logId: String,
-) :
-    ServerHttpResponseDecorator(delegate) {
+) : ServerHttpResponseDecorator(delegate) {
     val log: Logger = LoggerFactory.getLogger(this::class.java)
     private var copyBody: ByteArray? = null
 
@@ -90,7 +89,6 @@ class SheltersdogResponseLogDecorator(
                 objectMapper.writeValueAsString(
                     ResponseBodyLog(
                         id = logId,
-                        logType = "RESPONSE_BODY",
                         body = it.decodeToString(),
                     )
                 )
