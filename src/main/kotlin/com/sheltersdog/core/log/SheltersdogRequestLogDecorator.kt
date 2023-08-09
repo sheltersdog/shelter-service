@@ -7,12 +7,11 @@ import org.springframework.core.io.buffer.DataBuffer
 import org.springframework.http.server.reactive.ServerHttpRequest
 import org.springframework.http.server.reactive.ServerHttpRequestDecorator
 import reactor.core.publisher.Flux
-import reactor.core.publisher.Mono
 
 class SheltersdogRequestLogDecorator(
     delegate: ServerHttpRequest,
-    private val objectMapper: ObjectMapper,
-    private val logId: String,
+    objectMapper: ObjectMapper,
+    logId: String,
 ) : ServerHttpRequestDecorator(delegate) {
     val log: Logger = LoggerFactory.getLogger(this::class.java)
     private var body: Flux<DataBuffer>
@@ -32,23 +31,19 @@ class SheltersdogRequestLogDecorator(
             }
         }
 
-        Mono.just(false).subscribe {
-            log.info(
-                objectMapper.writeValueAsString(
-                    RequestLog(
-                        id = logId,
-                        headers = delegate.headers,
-                        method = delegate.method.name(),
-                        path = delegate.uri.path,
-                        query = delegate.queryParams,
-                        body = copyBody?.decodeToString(),
-                    )
+        log.info(
+            objectMapper.writeValueAsString(
+                RequestLog(
+                    id = logId,
+                    headers = delegate.headers,
+                    method = delegate.method.name(),
+                    path = delegate.uri.path,
+                    query = delegate.queryParams,
+                    body = copyBody?.decodeToString(),
                 )
             )
-        }
+        )
     }
 
     override fun getBody(): Flux<DataBuffer> = body
-
-
 }
