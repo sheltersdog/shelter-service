@@ -40,15 +40,15 @@ class MDCContextLifterConfig {
 
 class MDCContextLifter<T>(private val coreSubscriber: CoreSubscriber<T>) : CoreSubscriber<T> {
     override fun onSubscribe(s: Subscription) = coreSubscriber.onSubscribe(s)
-
     override fun onError(t: Throwable?) = coreSubscriber.onError(t)
-
     override fun onComplete() = coreSubscriber.onComplete()
+    override fun currentContext(): Context = coreSubscriber.currentContext()
 
     override fun onNext(t: T) {
         coreSubscriber.currentContext().copyToMdc()
         coreSubscriber.onNext(t)
     }
+
 }
 
 private fun Context.copyToMdc() {
@@ -74,3 +74,4 @@ fun saveMdcTrace(trace: String = "") {
         MDC.put("order", order.toString())
     }
 }
+
