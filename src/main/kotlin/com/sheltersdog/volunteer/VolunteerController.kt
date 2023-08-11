@@ -1,6 +1,5 @@
 package com.sheltersdog.volunteer
 
-import com.sheltersdog.core.log.saveMdcTrace
 import com.sheltersdog.volunteer.dto.request.GetVolunteerCategoriesRequest
 import com.sheltersdog.volunteer.dto.request.GetVolunteersRequest
 import com.sheltersdog.volunteer.dto.request.PostVolunteer
@@ -30,7 +29,7 @@ class VolunteerController @Autowired constructor(val volunteerService: Volunteer
     ): VolunteerDto? {
         return volunteerService.putVolunteer(requestBody)
     }
-//
+
 //    @PutMapping
 //    suspend fun putAllVolunteerStatusByShelterId(@RequestBody requestBody: Map<String, Any>) {
 //        if (requestBody["shelterId"] !is Long) {
@@ -38,15 +37,12 @@ class VolunteerController @Autowired constructor(val volunteerService: Volunteer
 //            throw SheltersdogException("잘못된 요청입니다.")
 //        }
 //        val shelterId = requestBody["shelterId"] as Long
-//
-//
 //    }
 
     @GetMapping("/list")
     suspend fun getVolunteers(
         requestParam: GetVolunteersRequest,
     ): List<VolunteerDto> {
-        saveMdcTrace()
         return volunteerService.getVolunteers(requestParam)
     }
 

@@ -2,7 +2,6 @@ package com.sheltersdog.volunteer
 
 import com.sheltersdog.core.event.EventBus
 import com.sheltersdog.core.exception.SheltersdogException
-import com.sheltersdog.core.log.saveMdcTrace
 import com.sheltersdog.core.util.yyyyMMddToLocalDate
 import com.sheltersdog.shelter.entity.Shelter
 import com.sheltersdog.shelter.entity.model.ShelterAuthority
@@ -171,7 +170,6 @@ class VolunteerService @Autowired constructor(
     }
 
     suspend fun getVolunteers(requestBody: GetVolunteersRequest): List<VolunteerDto> {
-        saveMdcTrace()
         val pageable = PageRequest.of(
             requestBody.page,
             requestBody.size,
