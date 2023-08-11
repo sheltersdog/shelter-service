@@ -46,8 +46,8 @@ class SaveVolunteerEventListener @Autowired constructor(
                     shelterRepository.updateById(
                         id = volunteer.shelterId,
                         updateFields = mapOf(
-                            Pair(Shelter::volunteerActiveCount.name, shelter.volunteerActiveCount + 1),
-                            Pair(Shelter::volunteerTotalCount.name, shelter.volunteerTotalCount + 1)
+                            Pair(Shelter::volunteerActiveCount, shelter.volunteerActiveCount + 1),
+                            Pair(Shelter::volunteerTotalCount, shelter.volunteerTotalCount + 1)
                         )
                     )
                 }

@@ -43,7 +43,7 @@ class SaveForeverdogEventListener @Autowired constructor(
 
                     shelterRepository.updateById(
                         id = shelter.id!!.toString(),
-                        updateFields = mapOf(Pair(Shelter::foreverdogCount.name, shelter.foreverdogCount + 1))
+                        updateFields = mapOf(Pair(Shelter::foreverdogCount, shelter.foreverdogCount + 1))
                     )
                 }
             }
