@@ -39,7 +39,6 @@ class VolunteerService @Autowired constructor(
         val shelter = if (requestBody.sourceType == SourceType.SERVICE) {
             shelterRepository.findById(requestBody.shelterId!!)
         } else null
-        log.debug("postVolunteer start, shelter: $shelter")
 
         val entity = Volunteer(
             shelterName = requestBody.shelterName ?: "",
@@ -93,8 +92,8 @@ class VolunteerService @Autowired constructor(
                     shelterAuthorities = listOf(ShelterAuthority.ADMIN, ShelterAuthority.VOLUNTEER_MANAGE)
                 )
             ) {
-                log.debug("putVolunteer :: $userId is not have authority :: shelterId = $shelterId, ${ShelterAuthority.VOLUNTEER_MANAGE}")
-                throw SheltersdogException("$userId is not have authority")
+                log.debug("putVolunteer :: $userId 는 봉사 정보를 수정할 권한이 없습니다. :: shelterId = $shelterId, ${ShelterAuthority.VOLUNTEER_MANAGE}")
+                throw SheltersdogException("$userId 는 봉사 정보를 업데이트할 권한이 없습니다.")
             }
         }
 
@@ -152,8 +151,8 @@ class VolunteerService @Autowired constructor(
                     shelterAuthorities = listOf(ShelterAuthority.ADMIN, ShelterAuthority.VOLUNTEER_MANAGE)
                 )
             ) {
-                log.debug("postVolunteer -> $userId is not have authority")
-                throw SheltersdogException("$userId is not have authority(${ShelterAuthority.VOLUNTEER_MANAGE})")
+                log.debug("postVolunteer -> $userId 는 봉사 정보를 수정할 권한이 없습니다. :: shelterId = ${shelter.id}, ${ShelterAuthority.VOLUNTEER_MANAGE}")
+                throw SheltersdogException("회원에게 쉼터의 봉사 정보를 업데이트할 권한이 없습니다.")
             }
 
             val saveEntity = volunteerRepository.save(
@@ -205,10 +204,23 @@ class VolunteerService @Autowired constructor(
     }
 
     suspend fun putAllVolunteerStatusByShelterId(shelterId: String) {
-        val entity = shelterRepository.findById(shelterId)
-        if (entity == null) {
+        val shelter = shelterRepository.findById(shelterId)
+        if (shelter == null) {
             log.debug("존재하지 않는 쉼터입니다. shelterId: $shelterId")
             throw SheltersdogException("존재하지 않는 쉼터입니다.")
+        }
+
+        val userId =
+            (ReactiveSecurityContextHolder.getContext().awaitSingle().authentication.principal as User).username
+        if (
+            !hasAuthority(
+                shelterAdmins = shelter.sheltersAdmins,
+                userId = userId!!,
+                shelterAuthorities = listOf(ShelterAuthority.ADMIN, ShelterAuthority.VOLUNTEER_MANAGE)
+            )
+        ) {
+            log.debug("putAllVolunteerStatusByShelterId :: $userId 는 봉사 정보를 수정할 권한이 없습니다. :: shelterId = $shelterId, ${ShelterAuthority.VOLUNTEER_MANAGE}")
+            throw SheltersdogException("회원에게 쉼터의 봉사 정보를 업데이트할 권한이 없습니다.")
         }
 
         val updateResult = volunteerRepository.updateAllByShelterId(
