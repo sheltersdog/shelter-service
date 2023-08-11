@@ -3,6 +3,7 @@ package com.sheltersdog.volunteer.repository
 import com.mongodb.client.result.UpdateResult
 import com.sheltersdog.address.entity.Address
 import com.sheltersdog.core.database.updateQuery
+import com.sheltersdog.core.model.SheltersdogStatus
 import com.sheltersdog.core.util.yyyyMMddToLocalDate
 import com.sheltersdog.volunteer.entity.Volunteer
 import kotlinx.coroutines.flow.toList
@@ -21,7 +22,7 @@ import kotlin.reflect.KProperty
 
 @Repository
 class VolunteerRepository @Autowired constructor(
-    val reactiveMongoTemplate: ReactiveMongoTemplate
+    val reactiveMongoTemplate: ReactiveMongoTemplate,
 ) {
 
     suspend fun save(entity: Volunteer): Volunteer {
@@ -34,13 +35,28 @@ class VolunteerRepository @Autowired constructor(
 
     suspend fun updateById(
         id: String,
-        updateFields: Map<KProperty<*>, Any?>
+        updateFields: Map<KProperty<*>, Any?>,
     ): UpdateResult {
         val update = updateQuery(updateFields)
 
         return reactiveMongoTemplate.updateFirst(
             Query.query(
                 where(Volunteer::id).`is`(id)
+            ), update, Volunteer::class.java
+        ).awaitSingle()
+    }
+
+    suspend fun updateAllByShelterId(
+        shelterId: String,
+        updateFields: Map<KProperty<*>, Any?>,
+    ): UpdateResult {
+        val update = updateQuery(updateFields)
+
+        return reactiveMongoTemplate.updateMulti(
+            Query.query(
+                where(Volunteer::shelterId).`is`(shelterId).andOperator(
+                    where(Volunteer::status).`is`(SheltersdogStatus.ACTIVE)
+                )
             ), update, Volunteer::class.java
         ).awaitSingle()
     }
@@ -52,6 +68,7 @@ class VolunteerRepository @Autowired constructor(
         categories: List<String> = listOf(),
         pageable: Pageable = Pageable.unpaged(),
         loadAddresses: Boolean = false,
+        statuses: List<SheltersdogStatus> = listOf(SheltersdogStatus.ACTIVE),
     ): List<Volunteer> {
         val query = Query().with(pageable)
 
@@ -66,7 +83,11 @@ class VolunteerRepository @Autowired constructor(
         betweenStartDateAndDateDateQuery(date, query)
         whereRegionCodeQuery(regionCode, query)
 
-        val entities = reactiveMongoTemplate.find(query, Volunteer::class.java)
+        val entities = reactiveMongoTemplate.find(
+            query.addCriteria(
+                where(Volunteer::status).`in`(statuses)
+            ), Volunteer::class.java
+        )
             .asFlow().toList()
 
         if (loadAddresses) {

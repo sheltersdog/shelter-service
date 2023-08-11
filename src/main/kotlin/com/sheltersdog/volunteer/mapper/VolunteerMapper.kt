@@ -31,6 +31,8 @@ fun volunteerToDto(
         isAlwaysRecruiting = entity.isAlwaysRecruiting,
         startDate = entity.startDate?.let { localDateToKoreanFormat(it) },
         endDate = entity.endDate?.let { localDateToKoreanFormat(it) },
+        exposeStartDate = entity.exposeStartDate?.let { localDateToKoreanFormat(it) },
+        exposeEndDate = entity.exposeEndDate?.let { localDateToKoreanFormat(it) },
         startTime = entity.startTime,
         endTime = entity.endTime,
         content = entity.content,

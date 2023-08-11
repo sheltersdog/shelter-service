@@ -24,4 +24,7 @@ data class VolunteerDto(
     val url: String? = null,
     val shelterId: String? = null,
     val shelter: ShelterDto? = null,
+
+    val exposeStartDate: String? = null,
+    val exposeEndDate: String? = null,
 )

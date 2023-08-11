@@ -2,6 +2,7 @@ package com.sheltersdog.volunteer
 
 import com.sheltersdog.core.event.EventBus
 import com.sheltersdog.core.exception.SheltersdogException
+import com.sheltersdog.core.model.SheltersdogStatus
 import com.sheltersdog.core.util.yyyyMMddToLocalDate
 import com.sheltersdog.shelter.entity.Shelter
 import com.sheltersdog.shelter.entity.model.ShelterAuthority
@@ -183,6 +184,7 @@ class VolunteerService @Autowired constructor(
             date = requestBody.date,
             pageable = pageable,
             loadAddresses = true,
+            statuses = requestBody.statuses.map { status -> SheltersdogStatus.valueOf(status) },
         ).stream().map { volunteer ->
             volunteerToDto(
                 volunteer,
@@ -200,5 +202,23 @@ class VolunteerService @Autowired constructor(
         val categories = mutableSetOf<String>()
         entities.forEach { entity -> entity.categories.forEach(categories::add) }
         return categories.toTypedArray()
+    }
+
+    suspend fun putAllVolunteerStatusByShelterId(shelterId: String) {
+        val entity = shelterRepository.findById(shelterId)
+        if (entity == null) {
+            log.debug("존재하지 않는 쉼터입니다. shelterId: $shelterId")
+            throw SheltersdogException("존재하지 않는 쉼터입니다.")
+        }
+
+        val updateResult = volunteerRepository.updateAllByShelterId(
+            shelterId = shelterId,
+            updateFields = mapOf(Pair(Volunteer::status, SheltersdogStatus.INACTIVE))
+        )
+
+        if (!updateResult.wasAcknowledged()) {
+            log.debug("putAllVolunteerStatusByShelterId :: 모든 봉사 비공개를 실패했습니다. $shelterId")
+            throw SheltersdogException("봉사 정보 업데이트에 실패했습니다.")
+        }
     }
 }
