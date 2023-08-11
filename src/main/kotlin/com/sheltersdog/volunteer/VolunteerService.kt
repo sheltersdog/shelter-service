@@ -2,6 +2,7 @@ package com.sheltersdog.volunteer
 
 import com.sheltersdog.core.event.EventBus
 import com.sheltersdog.core.exception.SheltersdogException
+import com.sheltersdog.core.log.saveMdcTrace
 import com.sheltersdog.core.util.yyyyMMddToLocalDate
 import com.sheltersdog.shelter.entity.Shelter
 import com.sheltersdog.shelter.entity.model.ShelterAuthority
@@ -11,6 +12,7 @@ import com.sheltersdog.shelter.util.hasAuthority
 import com.sheltersdog.volunteer.dto.request.GetVolunteerCategoriesRequest
 import com.sheltersdog.volunteer.dto.request.GetVolunteersRequest
 import com.sheltersdog.volunteer.dto.request.PostVolunteer
+import com.sheltersdog.volunteer.dto.request.PutVolunteer
 import com.sheltersdog.volunteer.dto.response.VolunteerDto
 import com.sheltersdog.volunteer.entity.Volunteer
 import com.sheltersdog.volunteer.entity.model.SourceType
@@ -39,9 +41,6 @@ class VolunteerService @Autowired constructor(
         } else null
         log.debug("postVolunteer start, shelter: $shelter")
 
-        val startDate = requestBody.startDate?.let { yyyyMMddToLocalDate(it) }
-        val endDate = requestBody.endDate?.let { yyyyMMddToLocalDate(it) }
-
         val entity = Volunteer(
             shelterName = requestBody.shelterName ?: "",
             sourceType = requestBody.sourceType,
@@ -52,10 +51,12 @@ class VolunteerService @Autowired constructor(
             detailAddress = requestBody.detailAddress,
             isPrivateDetailAddress = requestBody.isPrivateDetailAddress,
             isAlwaysRecruiting = requestBody.isAlwaysRecruiting,
-            startDate = startDate,
-            endDate = endDate,
+            startDate = requestBody.startDate?.let { yyyyMMddToLocalDate(it) },
+            endDate = requestBody.endDate?.let { yyyyMMddToLocalDate(it) },
             startTime = requestBody.startTime,
             endTime = requestBody.endTime,
+            exposeStartDate = requestBody.exposeStartDate?.let { yyyyMMddToLocalDate(it) },
+            exposeEndDate = requestBody.exposeEndDate?.let { yyyyMMddToLocalDate(it) },
             days = requestBody.days,
             content = requestBody.content,
             url = requestBody.url,
@@ -68,11 +69,81 @@ class VolunteerService @Autowired constructor(
         return volunteerToDto(volunteer, true)
     }
 
+    suspend fun putVolunteer(requestBody: PutVolunteer): VolunteerDto? {
+        val volunteer = volunteerRepository.findById(requestBody.id)
+        if (volunteer == null) {
+            log.debug("putVolunteer :: 봉사 id값이 다릅니다. requestBody: $requestBody")
+            throw SheltersdogException("존재하지 않는 봉사 정보입니다.")
+        }
+
+        volunteer.shelterId?.let { shelterId ->
+            val shelter = shelterRepository.findById(shelterId)
+
+            if (shelter == null) {
+                log.warn("봉사정보와 쉼터 정보가 일치하지 않습니다. volunteerId: ${requestBody.id}, shelterId: $shelterId")
+                return@let
+            }
+
+            val userId =
+                (ReactiveSecurityContextHolder.getContext().awaitSingle().authentication.principal as User).username
+            if (
+                !hasAuthority(
+                    shelterAdmins = shelter.sheltersAdmins,
+                    userId = userId!!,
+                    shelterAuthorities = listOf(ShelterAuthority.ADMIN, ShelterAuthority.VOLUNTEER_MANAGE)
+                )
+            ) {
+                log.debug("putVolunteer :: $userId is not have authority :: shelterId = $shelterId, ${ShelterAuthority.VOLUNTEER_MANAGE}")
+                throw SheltersdogException("$userId is not have authority")
+            }
+        }
+
+
+        val startDate = requestBody.startDate?.let { yyyyMMddToLocalDate(it) }
+        val endDate = requestBody.endDate?.let { yyyyMMddToLocalDate(it) }
+        val exposeStartDate = requestBody.exposeStartDate?.let { yyyyMMddToLocalDate(it) }
+        val exposeEndDate = requestBody.exposeEndDate?.let { yyyyMMddToLocalDate(it) }
+
+        val updateResult = volunteerRepository.updateById(
+            id = requestBody.id,
+            updateFields = mapOf(
+                Pair(Volunteer::isShort, requestBody.isShort),
+                Pair(Volunteer::categories, requestBody.categories),
+                Pair(Volunteer::startDate, startDate),
+                Pair(Volunteer::endDate, endDate),
+                Pair(Volunteer::days, requestBody.days),
+                Pair(Volunteer::startTime, requestBody.startTime),
+                Pair(Volunteer::endTime, requestBody.endTime),
+                Pair(Volunteer::isAlwaysRecruiting, requestBody.isAlwaysRecruiting),
+                Pair(Volunteer::regionCode, requestBody.regionCode),
+                Pair(Volunteer::detailAddress, requestBody.detailAddress),
+                Pair(Volunteer::arriveRegionCode, requestBody.arriveRegionCode),
+                Pair(Volunteer::arriveDetailAddress, requestBody.arriveDetailAddress),
+                Pair(Volunteer::isPrivateDetailAddress, requestBody.isPrivateDetailAddress),
+                Pair(Volunteer::content, requestBody.content),
+                Pair(Volunteer::url, requestBody.url),
+                Pair(Volunteer::exposeStartDate, exposeStartDate),
+                Pair(Volunteer::exposeEndDate, exposeEndDate),
+            )
+        )
+
+        if (!updateResult.wasAcknowledged()) {
+            log.debug("putVolunteer :: 봉사 정보 업데이트에 실패했습니다. $requestBody")
+            throw SheltersdogException("봉사 정보 업데이트에 실패했습니다.")
+        }
+
+        val updateVolunteer = volunteerRepository.findById(updateResult.upsertedId.toString())
+        return updateVolunteer?.let {
+            volunteerToDto(updateVolunteer, true)
+        }
+    }
+
     private suspend fun saveVolunteer(
         shelter: Shelter?,
-        entity: Volunteer
+        entity: Volunteer,
     ): Volunteer {
-        val userId = (ReactiveSecurityContextHolder.getContext().awaitSingle().authentication.principal as User).username
+        val userId =
+            (ReactiveSecurityContextHolder.getContext().awaitSingle().authentication.principal as User).username
         val volunteer = if (shelter != null) {
             if (
                 !hasAuthority(
@@ -100,6 +171,7 @@ class VolunteerService @Autowired constructor(
     }
 
     suspend fun getVolunteers(requestBody: GetVolunteersRequest): List<VolunteerDto> {
+        saveMdcTrace()
         val pageable = PageRequest.of(
             requestBody.page,
             requestBody.size,
