@@ -29,20 +29,21 @@ class SheltersdogRequestLogDecorator(
                 copyBody = bodyPair.first
                 bodyPair.second
             }
-        }
-
-        log.info(
-            objectMapper.writeValueAsString(
-                RequestLog(
-                    id = logId,
-                    headers = delegate.headers,
-                    method = delegate.method.name(),
-                    path = delegate.uri.path,
-                    query = delegate.queryParams,
-                    body = copyBody?.decodeToString(),
+        }.doOnNext {
+            log.info(
+                objectMapper.writeValueAsString(
+                    RequestLog(
+                        id = logId,
+                        headers = delegate.headers,
+                        method = delegate.method.name(),
+                        path = delegate.uri.path,
+                        query = delegate.queryParams,
+                        body = copyBody?.decodeToString(),
+                    )
                 )
             )
-        )
+        }
+
     }
 
     override fun getBody(): Flux<DataBuffer> = body
