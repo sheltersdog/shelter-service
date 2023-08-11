@@ -1,6 +1,7 @@
 package com.sheltersdog.volunteer.entity
 
 import com.sheltersdog.address.entity.Address
+import com.sheltersdog.core.model.SheltersdogStatus
 import com.sheltersdog.shelter.entity.Shelter
 import com.sheltersdog.volunteer.entity.model.SourceType
 import org.bson.types.ObjectId
@@ -14,6 +15,7 @@ data class Volunteer (
     @Id
     val id: ObjectId? = null,
     val sourceType: SourceType = SourceType.SERVICE,
+    val status: SheltersdogStatus = SheltersdogStatus.ACTIVE,
 
     val shelter: Shelter? = null,
     val shelterId: String? = null,
@@ -40,6 +42,9 @@ data class Volunteer (
     @field:Range(min = 10_000_000_00, max = 1_00_000_000_00)
     val arriveRegionCode: Long? = null,
     val arriveDetailAddress: String? = null,
+
+    val exposeStartDate: LocalDate? = null,
+    val exposeEndDate: LocalDate? = null,
 
     val searchKeyword: String,
 )

@@ -34,4 +34,7 @@ data class PostVolunteer(
     @field:Range(min = 10_000_000_00, max = 1_00_000_000_00)
     val arriveRegionCode: Long? = null,
     val arriveDetailAddress: String? = null,
+
+    val exposeStartDate: String? = null,
+    val exposeEndDate: String? = null,
 )
