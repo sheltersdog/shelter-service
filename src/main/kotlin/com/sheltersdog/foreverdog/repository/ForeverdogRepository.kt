@@ -1,6 +1,7 @@
 package com.sheltersdog.foreverdog.repository
 
 import com.sheltersdog.foreverdog.entity.Foreverdog
+import com.sheltersdog.foreverdog.entity.model.ForeverdogStatus
 import com.sheltersdog.shelter.entity.Shelter
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.reactive.asFlow
@@ -15,7 +16,7 @@ import org.springframework.stereotype.Component
 
 @Component
 class ForeverdogRepository @Autowired constructor(
-    val reactiveMongoTemplate: ReactiveMongoTemplate
+    val reactiveMongoTemplate: ReactiveMongoTemplate,
 ) {
     suspend fun save(entity: Foreverdog): Foreverdog {
         return reactiveMongoTemplate.save(entity).awaitSingle()
@@ -28,10 +29,15 @@ class ForeverdogRepository @Autowired constructor(
     suspend fun getForeverdogs(
         keyword: String = "",
         shelterId: String = "",
+        statuses: List<ForeverdogStatus> = listOf(
+            ForeverdogStatus.SHELTER_PROTECTION
+        ),
         pageable: Pageable = Pageable.unpaged(),
         isContainShelter: Boolean = false,
     ): List<Foreverdog> {
-        val query = Query().with(pageable)
+        val query = Query().with(pageable).addCriteria(
+            where(Foreverdog::status).`in`(statuses)
+        )
 
         if (shelterId.isNotEmpty()) {
             where(Foreverdog::shelterId).`is`(shelterId)

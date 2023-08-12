@@ -5,4 +5,16 @@ enum class ForeverdogStatus(description: String) {
     TEMPORARY_PROTECTION("임시 보호 중이에요."),
     ADOPT("입양갔어요"),
     PRIVATE("비공개 (안락사 / 자연사 / 기타)"),
+    ;
+
+    companion object {
+        fun of(name: String): ForeverdogStatus {
+            return try {
+                ForeverdogStatus.valueOf(name)
+            } catch (e: Exception) {
+                PRIVATE
+            }
+        }
+    }
 }
+

@@ -7,6 +7,7 @@ import com.sheltersdog.foreverdog.dto.request.GetForeverdogsRequest
 import com.sheltersdog.foreverdog.dto.request.PostForeverdogRequest
 import com.sheltersdog.foreverdog.dto.response.ForeverdogDto
 import com.sheltersdog.foreverdog.entity.Foreverdog
+import com.sheltersdog.foreverdog.entity.model.ForeverdogStatus
 import com.sheltersdog.foreverdog.mapper.foreverdogToDto
 import com.sheltersdog.foreverdog.repository.ForeverdogRepository
 import com.sheltersdog.shelter.entity.model.ShelterAuthority
@@ -71,10 +72,13 @@ class ForeverdogService @Autowired constructor(
     }
 
     suspend fun getForeverdogs(requestParam: GetForeverdogsRequest): List<ForeverdogDto> {
+        val statuses = requestParam.statuses.map { status -> ForeverdogStatus.of(status) }
+
         val foreverdogs = foreverdogRepository.getForeverdogs(
             keyword = requestParam.keyword ?: "",
             pageable = PageRequest.of(requestParam.page, requestParam.size),
             shelterId = requestParam.shelterId,
+            statuses = statuses,
         )
 
         return foreverdogs.map { foreverdog -> foreverdogToDto(foreverdog) }
