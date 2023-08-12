@@ -2,18 +2,25 @@ package com.sheltersdog.shelter.util
 
 import com.sheltersdog.shelter.entity.ShelterJoinUser
 import com.sheltersdog.shelter.entity.model.ShelterAuthority
+import kotlinx.coroutines.reactive.awaitSingle
+import org.springframework.security.core.context.ReactiveSecurityContextHolder
+import org.springframework.security.core.userdetails.User
 
-fun hasAuthority(
+suspend fun hasAuthority(
     shelterAdmins: List<ShelterJoinUser>,
-    userId: String,
+    userId: String? = null,
     shelterAuthorities: List<ShelterAuthority>,
 ): Boolean {
-    val shelterJoinUser = shelterAdmins.firstOrNull { admin -> admin.userId == userId }
+    val checkUserId = userId
+        ?: (ReactiveSecurityContextHolder.getContext().awaitSingle().authentication.principal as User).username
 
-    shelterAuthorities.forEach { shelterAuthority ->
-        val result = shelterJoinUser?.authorities?.contains(shelterAuthority)
-        if (result != null && result) return true
-    }
+    val shelterJoinUser = shelterAdmins.firstOrNull { admin ->
+        admin.userId == checkUserId
+    } ?: return false
 
-    return false
+    shelterAuthorities.firstOrNull { shelterAuthority ->
+        shelterJoinUser.authorities.contains(shelterAuthority)
+    } ?: return false
+
+    return true
 }
