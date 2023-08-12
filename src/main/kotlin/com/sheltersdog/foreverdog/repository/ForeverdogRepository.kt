@@ -25,13 +25,26 @@ class ForeverdogRepository @Autowired constructor(
         return reactiveMongoTemplate.save(entity).awaitSingle()
     }
 
-    suspend fun findById(foreverdogId: String): Foreverdog? {
-        return reactiveMongoTemplate.findById(foreverdogId, Foreverdog::class.java).awaitSingleOrNull()
+    suspend fun findById(
+        foreverdogId: String,
+        isContainShelter: Boolean = false,
+    ): Foreverdog? {
+        val foreverdog = reactiveMongoTemplate
+            .findById(foreverdogId, Foreverdog::class.java)
+            .awaitSingleOrNull()
+            ?: return null
+
+        val shelter = reactiveMongoTemplate
+            .findById(foreverdog.shelterId, Shelter::class.java)
+            .awaitSingleOrNull()
+            ?: return foreverdog
+
+        return foreverdog.copy(shelter = shelter)
     }
 
     suspend fun updateById(
         id: String,
-        updateFields: Map<KProperty<*>, Any?>
+        updateFields: Map<KProperty<*>, Any?>,
     ): UpdateResult {
         val update = updateQuery(updateFields)
 

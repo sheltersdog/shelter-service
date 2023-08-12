@@ -26,12 +26,13 @@ import org.springframework.stereotype.Service
 @Service
 class ForeverdogService @Autowired constructor(
     val shelterRepository: ShelterRepository,
-    val foreverdogRepository: ForeverdogRepository
+    val foreverdogRepository: ForeverdogRepository,
 ) {
     val log: Logger = LoggerFactory.getLogger(this::class.java)
 
     suspend fun postForeverdog(requestBody: PostForeverdogRequest): ForeverdogDto {
-        val userId = (ReactiveSecurityContextHolder.getContext().awaitSingle().authentication.principal as User).username
+        val userId =
+            (ReactiveSecurityContextHolder.getContext().awaitSingle().authentication.principal as User).username
         val shelter = shelterRepository.findById(requestBody.shelterId)
 
         if (shelter == null) {
@@ -45,8 +46,8 @@ class ForeverdogService @Autowired constructor(
         )
 
         if (!hasAuthority) {
-            log.debug("postForeverdog fail -> $userId is not have authority")
-            throw SheltersdogException("$userId is not have authority(${ShelterAuthority.DOG_MANAGE})")
+            log.debug("postForeverdog fail :: 권한이 없는 사용자가 등록을 요청하였습니다. userId: $userId")
+            throw SheltersdogException("권한이 없습니다.")
         }
 
         val entity = Foreverdog(
@@ -85,6 +86,25 @@ class ForeverdogService @Autowired constructor(
     }
 
     suspend fun putForeverdogStatus(foreverdogId: String, status: ForeverdogStatus): ForeverdogDto {
+        val entity = foreverdogRepository.findById(foreverdogId)
+        if (entity == null) {
+            log.debug("putForeverdogStatus :: 존재하지 않는 데이터입니다. foreverdogId: $foreverdogId")
+            throw SheltersdogException("상태 변경에 실패하였습니다.")
+        }
+
+        val hasAuthority = entity.shelter?.sheltersAdmins?.let { shelterAdmins ->
+            hasAuthority(
+                shelterAdmins = shelterAdmins,
+                shelterAuthorities = listOf(ShelterAuthority.ADMIN, ShelterAuthority.DOG_MANAGE)
+            )
+        } ?: false
+
+        if (!hasAuthority) {
+            val userId = (ReactiveSecurityContextHolder.getContext().awaitSingle().authentication.principal as User).username
+            log.debug("putForeverdogStatus :: 권한이 없는 사용자가 강이자 상태 변경을 시도하였습니다. foreverdogId: $foreverdogId, userId: $userId")
+            throw SheltersdogException("권한이 없습니다.")
+        }
+
         val result = foreverdogRepository.updateById(
             id = foreverdogId,
             updateFields = mapOf(
