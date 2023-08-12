@@ -83,4 +83,21 @@ class ForeverdogService @Autowired constructor(
 
         return foreverdogs.map { foreverdog -> foreverdogToDto(foreverdog) }
     }
+
+    suspend fun putForeverdogStatus(foreverdogId: String, status: ForeverdogStatus): ForeverdogDto {
+        val result = foreverdogRepository.updateById(
+            id = foreverdogId,
+            updateFields = mapOf(
+                Pair(Foreverdog::status, status)
+            )
+        )
+
+        if (!result.wasAcknowledged()) {
+            log.debug("putForeverdogStatus :: 강아지 상태 변경에 실패하였습니다. foreverdogId: $foreverdogId, status: $status")
+            throw SheltersdogException("상태 변경에 실패하였습니다.")
+        }
+        return foreverdogToDto(
+            entity = foreverdogRepository.findById(foreverdogId)!!
+        )
+    }
 }

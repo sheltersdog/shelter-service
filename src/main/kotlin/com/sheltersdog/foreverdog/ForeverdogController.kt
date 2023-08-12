@@ -3,6 +3,7 @@ package com.sheltersdog.foreverdog
 import com.sheltersdog.foreverdog.dto.request.GetForeverdogsRequest
 import com.sheltersdog.foreverdog.dto.request.PostForeverdogRequest
 import com.sheltersdog.foreverdog.dto.response.ForeverdogDto
+import com.sheltersdog.foreverdog.entity.model.ForeverdogStatus
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.*
 
@@ -20,6 +21,17 @@ class ForeverdogController @Autowired constructor(
     @GetMapping("/list")
     suspend fun getForeverdogs(requestParam: GetForeverdogsRequest): List<ForeverdogDto> {
         return foreverdogService.getForeverdogs(requestParam)
+    }
+
+    @PutMapping("/status")
+    suspend fun putForeverdogStatus(@RequestBody requestBody: Map<String, Any>): ForeverdogDto {
+        val foreverdogId = requestBody["foreverdogId"] as String
+        val status = ForeverdogStatus.valueOf(requestBody["status"].toString())
+
+        return foreverdogService.putForeverdogStatus(
+            foreverdogId = foreverdogId,
+            status = status,
+        )
     }
 
 

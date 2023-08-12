@@ -1,5 +1,7 @@
 package com.sheltersdog.foreverdog.repository
 
+import com.mongodb.client.result.UpdateResult
+import com.sheltersdog.core.database.updateQuery
 import com.sheltersdog.foreverdog.entity.Foreverdog
 import com.sheltersdog.foreverdog.entity.model.ForeverdogStatus
 import com.sheltersdog.shelter.entity.Shelter
@@ -13,6 +15,7 @@ import org.springframework.data.mongodb.core.ReactiveMongoTemplate
 import org.springframework.data.mongodb.core.query.Query
 import org.springframework.data.mongodb.core.query.where
 import org.springframework.stereotype.Component
+import kotlin.reflect.KProperty
 
 @Component
 class ForeverdogRepository @Autowired constructor(
@@ -24,6 +27,19 @@ class ForeverdogRepository @Autowired constructor(
 
     suspend fun findById(foreverdogId: String): Foreverdog? {
         return reactiveMongoTemplate.findById(foreverdogId, Foreverdog::class.java).awaitSingleOrNull()
+    }
+
+    suspend fun updateById(
+        id: String,
+        updateFields: Map<KProperty<*>, Any?>
+    ): UpdateResult {
+        val update = updateQuery(updateFields)
+
+        return reactiveMongoTemplate.updateFirst(
+            Query.query(
+                where(Foreverdog::id).`is`(id)
+            ), update, Foreverdog::class.java
+        ).awaitSingle()
     }
 
     suspend fun getForeverdogs(
