@@ -32,8 +32,8 @@ class ShelterService @Autowired constructor(
         val userId = (ReactiveSecurityContextHolder.getContext().awaitSingle().authentication.principal as User).username
         val user = userRepository.findById(userId)
         if (user == null || user.status != UserStatus.ACTIVE) {
-            log.debug("postShelter -> user's status is not ${UserStatus.ACTIVE}: $userId")
-            throw SheltersdogException("$userId is not ${UserStatus.ACTIVE} user")
+            log.debug("postShelter :: 유저의 상태가 ${UserStatus.ACTIVE}가 아닙니다. userId: $userId")
+            throw SheltersdogException("허용되지 않은 사용자의 접근입니다.")
         }
 
         val address = addressRepository.getAddressByRegionCode(requestBody.regionCode)
@@ -74,7 +74,7 @@ class ShelterService @Autowired constructor(
     suspend fun getShelter(id: String): ShelterDto {
         val shelter = shelterRepository.findById(id)
         if (shelter == null) {
-            log.debug("shelterId: $id is not exist")
+            log.debug("getShelter :: 존재하지 않는 보호소입니다. shelterId: $id")
             throw SheltersdogException("존재하지 않는 보호소입니다.")
         }
         return shelterToDto(shelter, isIncludeAddress = true)
