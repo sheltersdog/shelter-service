@@ -15,16 +15,14 @@ private val yyyyMMddHHmmssDot = DateTimeFormatter.ofPattern("yyyy.MM.dd HH:mm:ss
 private val HHmmss = DateTimeFormatter.ofPattern("HH:mm:ss")
 private val HHmm = DateTimeFormatter.ofPattern("HH:mm")
 
-private val localDateKoreanFormat = DateTimeFormatter.ofPattern("yy년 MM월 dd일")
+private val localDateKoreanFormat = DateTimeFormatter.ofPattern("yyyy년 MM월 dd일")
 private val localTimeKoreanFormat = DateTimeFormatter.ofPattern("HH시 mm분 ss초")
 private val localTimeKoreanFormatNotIncludeSecond = DateTimeFormatter.ofPattern("HH시 mm분")
 
 fun yyyyMMddToLocalDate(date: String): LocalDate {
-    if (date.contains("-")) return LocalDate.parse(date, yyyyMMddDash)
-    else if (date.contains("/")) return LocalDate.parse(date, yyyyMMddSlash)
-    else if (date.contains(".")) return LocalDate.parse(date, yyyyMMddDot)
-
-    return LocalDate.now()
+    return if (date.contains("-")) LocalDate.parse(date, yyyyMMddDash)
+    else if (date.contains("/")) LocalDate.parse(date, yyyyMMddSlash)
+    else LocalDate.parse(date, yyyyMMddDot)
 }
 
 fun localDateToKoreanFormat(date: LocalDate): String {
@@ -32,16 +30,14 @@ fun localDateToKoreanFormat(date: LocalDate): String {
 }
 
 fun yyyyMMddHHmmssToLocalDate(date: String): LocalDateTime {
-    if (date.contains("-")) return LocalDateTime.parse(date, yyyyMMddHHmmssDash)
-    else if (date.contains("/")) return LocalDateTime.parse(date, yyyyMMddHHmmssSlash)
-    else if (date.contains(".")) return LocalDateTime.parse(date, yyyyMMddHHmmssDot)
-
-    return LocalDateTime.now()
+    return if (date.contains("-")) LocalDateTime.parse(date, yyyyMMddHHmmssDash)
+    else if (date.contains("/")) LocalDateTime.parse(date, yyyyMMddHHmmssSlash)
+    else LocalDateTime.parse(date, yyyyMMddHHmmssDot)
 }
 
 fun localTimeKoreanFormat(
     time: LocalTime,
-    isIncludeSecond: Boolean = false
+    isIncludeSecond: Boolean = false,
 ): String {
     if (isIncludeSecond) return time.format(localTimeKoreanFormat)
     return time.format(localTimeKoreanFormatNotIncludeSecond)
