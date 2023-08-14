@@ -50,6 +50,13 @@ class DateTimeUtilsTest {
     }
 
     @MethodSource
+    @ParameterizedTest(name = "date: {0}")
+    fun yyyyMMddHHmmssToLocalDateThrowsTest(dateTime: String) {
+        assertThrows(DateTimeParseException::class.java) { yyyyMMddHHmmssToLocalDate(dateTime) }
+    }
+
+
+    @MethodSource
     @ParameterizedTest(name = "date: {0} :: isIncludeSecond: {1} expectedDate: {2}")
     fun localTimeKoreanFormatTest(
         time: LocalTime,
@@ -72,9 +79,14 @@ class DateTimeUtilsTest {
         test(expectedTime, actualTime)
     }
 
+    @MethodSource
+    @ParameterizedTest(name = "time: {0}")
+    fun HHmmssToLocalTimeThrowsTest(time: String) {
+        assertThrows(DateTimeParseException::class.java) { HHmmssToLocalTime(time) }
+    }
 
     @MethodSource
-    @ParameterizedTest(name = "date")
+    @ParameterizedTest(name = "time: {0}")
     fun HHmmToLocalTimeTest(
         time: String,
         expectedTime: LocalTime,
@@ -82,6 +94,12 @@ class DateTimeUtilsTest {
     ) {
         val actualTime = HHmmToLocalTime(time)
         test(expectedTime, actualTime)
+    }
+
+    @MethodSource
+    @ParameterizedTest(name = "time: {0}")
+    fun HHmmToLocalTimeThrowsTest(time: String) {
+        assertThrows(DateTimeParseException::class.java) { HHmmToLocalTime(time) }
     }
 
 
@@ -169,6 +187,13 @@ class DateTimeUtilsTest {
         )
 
         @JvmStatic
+        fun yyyyMMddHHmmssToLocalDateThrowsTest() = listOf(
+            Arguments.of("2023-08-12 12:12:123"),
+            Arguments.of("2023-08-12 12:112:12"),
+            Arguments.of("2023-8-12 12:12:12"),
+        )
+
+        @JvmStatic
         fun localTimeKoreanFormatTest(): List<Arguments> = listOf(
             Arguments.of(
                 LocalTime.of(12, 12),
@@ -215,6 +240,16 @@ class DateTimeUtilsTest {
         )
 
         @JvmStatic
+        fun HHmmssToLocalTimeThrowsTest() = listOf(
+            Arguments.of("13:13"),
+            Arguments.of("13:13:1"),
+            Arguments.of("13:13:101"),
+            Arguments.of("13:133"),
+            Arguments.of("13"),
+            Arguments.of("13:111"),
+        )
+
+        @JvmStatic
         fun HHmmToLocalTimeTest() = listOf(
             Arguments.of(
                 "13:12", LocalTime.of(13, 12),
@@ -224,6 +259,16 @@ class DateTimeUtilsTest {
                 "13:11", LocalTime.of(13, 12),
                 { expected: LocalTime, actual: LocalTime -> assertNotEquals(expected, actual) },
             ),
+        )
+
+        @JvmStatic
+        fun HHmmToLocalTimeThrowsTest() = listOf(
+            Arguments.of("13:13:12"),
+            Arguments.of("13:13:121"),
+            Arguments.of("13"),
+            Arguments.of("1"),
+            Arguments.of("13:1312"),
+            Arguments.of("13:13:1"),
         )
     }
 }
