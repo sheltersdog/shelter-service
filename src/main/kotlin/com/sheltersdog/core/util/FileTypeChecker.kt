@@ -20,7 +20,7 @@ fun fileTypeCheck(type: FileType, file: FilePart): Boolean {
 
 fun getFileExtension(file: FilePart): String {
     val extension = FilenameUtils.getExtension(file.filename())
-    if (extension.isNotBlank()) return extension
+    if (!extension.isNullOrBlank()) return extension
 
     return when (file.headers().contentType) {
         MediaType.IMAGE_JPEG -> "jpeg"
