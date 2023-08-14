@@ -60,13 +60,29 @@ class DateTimeUtilsTest {
         val actualTime = localTimeKoreanFormat(time = time, isIncludeSecond = isIncludeSecond)
         test(expectedTime, actualTime)
     }
-//    @Test
-//    fun HHmmssToLocalTime() {
-//    }
-//
-//    @Test
-//    fun HHmmToLocalTime() {
-//    }
+
+    @MethodSource
+    @ParameterizedTest(name = "time: {0} :: expectedTime: {1}")
+    fun HHmmssToLocalTimeTest(
+        time: String,
+        expectedTime: LocalTime,
+        test: (expected: LocalTime, actual: LocalTime) -> Unit,
+    ) {
+        val actualTime = HHmmssToLocalTime(time)
+        test(expectedTime, actualTime)
+    }
+
+
+    @MethodSource
+    @ParameterizedTest(name = "date")
+    fun HHmmToLocalTimeTest(
+        time: String,
+        expectedTime: LocalTime,
+        test: (expected: LocalTime, actual: LocalTime) -> Unit,
+    ) {
+        val actualTime = HHmmToLocalTime(time)
+        test(expectedTime, actualTime)
+    }
 
 
     companion object {
@@ -183,6 +199,30 @@ class DateTimeUtilsTest {
                 false,
                 "13시 13분 12초",
                 { expected: String, actual: String -> assertNotEquals(expected, actual) }
+            ),
+        )
+
+        @JvmStatic
+        fun HHmmssToLocalTimeTest() = listOf(
+            Arguments.of(
+                "13:13:13", LocalTime.of(13, 13, 13),
+                { expected: LocalTime, actual: LocalTime -> assertEquals(expected, actual) }
+            ),
+            Arguments.of(
+                "11:11:11", LocalTime.of(13, 13, 13),
+                { expected: LocalTime, actual: LocalTime -> assertNotEquals(expected, actual) }
+            )
+        )
+
+        @JvmStatic
+        fun HHmmToLocalTimeTest() = listOf(
+            Arguments.of(
+                "13:12", LocalTime.of(13, 12),
+                { expected: LocalTime, actual: LocalTime -> assertEquals(expected, actual) },
+            ),
+            Arguments.of(
+                "13:11", LocalTime.of(13, 12),
+                { expected: LocalTime, actual: LocalTime -> assertNotEquals(expected, actual) },
             ),
         )
     }
