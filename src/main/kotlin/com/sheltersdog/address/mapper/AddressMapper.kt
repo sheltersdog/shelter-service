@@ -7,18 +7,18 @@ import com.sheltersdog.address.model.AddressType
 fun addressToDto(
     entity: Address,
 ): AddressDto {
-    val name =
-        if (entity.type == AddressType.SIDO) entity.sidoName
-        else if (entity.type == AddressType.SGG) entity.sggName
-        else if (entity.type == AddressType.UMD) entity.umdName
-        else if (entity.type == AddressType.RI) entity.riName
-        else ""
-    val code =
-        if (entity.type == AddressType.SIDO) entity.sidoCd
-        else if (entity.type == AddressType.SGG) entity.sggCd
-        else if (entity.type == AddressType.UMD) entity.umdCd
-        else if (entity.type == AddressType.RI) entity.riCd
-        else ""
+    val name = when (entity.type) {
+        AddressType.SIDO -> entity.sidoName
+        AddressType.SGG -> entity.sggName
+        AddressType.UMD -> entity.umdName
+        AddressType.RI -> entity.riName
+    }
+    val code = when (entity.type) {
+        AddressType.SIDO -> entity.sidoCd
+        AddressType.SGG -> entity.sggCd
+        AddressType.UMD -> entity.umdCd
+        AddressType.RI -> entity.riCd
+    }
 
     return AddressDto(
         id = entity.id.toString(),
