@@ -72,6 +72,12 @@ class JwtProvider(@Autowired val jwtProperties: JwtProperties) {
             .compact()
     }
 
+    /**
+     * MalformedJwtException – if the specified JWT was incorrectly constructed (and therefore invalid). Invalid JWTs should not be trusted and should be discarded.
+     * SignatureException – if a JWS signature was discovered, but could not be verified. JWTs that fail signature validation should not be trusted and should be discarded.
+     * ExpiredJwtException – if the specified JWT is a Claims JWT and the Claims has an expiration time before the time this method is invoked.
+     * IllegalArgumentException – if the specified string is null or empty or only whitespace.
+     */
     fun verifyAccessToken(jwt: String, id: String) {
         verifyToken(
             jwt = jwt,
@@ -80,6 +86,13 @@ class JwtProvider(@Autowired val jwtProperties: JwtProperties) {
         )
     }
 
+
+    /**
+     * MalformedJwtException – if the specified JWT was incorrectly constructed (and therefore invalid). Invalid JWTs should not be trusted and should be discarded.
+     * SignatureException – if a JWS signature was discovered, but could not be verified. JWTs that fail signature validation should not be trusted and should be discarded.
+     * ExpiredJwtException – if the specified JWT is a Claims JWT and the Claims has an expiration time before the time this method is invoked.
+     * IllegalArgumentException – if the specified string is null or empty or only whitespace.
+     */
     fun verifyRefreshToken(jwt: String, id: String) {
         verifyToken(
             jwt = jwt,
