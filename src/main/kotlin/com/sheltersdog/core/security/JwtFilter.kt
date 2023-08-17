@@ -1,5 +1,6 @@
 package com.sheltersdog.core.security
 
+import com.sheltersdog.core.exception.ExceptionMessage
 import com.sheltersdog.core.model.AUTHORIZATION
 import com.sheltersdog.core.model.BEARER
 import com.sheltersdog.core.properties.ActiveProperties
@@ -38,7 +39,7 @@ class JwtFilter @Autowired constructor(
         ) {
             val value = exchange.request.headers[gatewayProperties.key]
             if (value.isNullOrEmpty() || !value.first().equals(gatewayProperties.value)) {
-                return filterChainError(exchange, "잘못된 경로로 요청하였습니다.")
+                return filterChainError(exchange, ExceptionMessage.NOT_EXIST_TOKEN.description)
             }
         }
 
@@ -47,7 +48,7 @@ class JwtFilter @Autowired constructor(
 
         if (authorizationWrapper.isNullOrEmpty()) {
             if (checkRequiredJwtApi(exchange.request)) {
-                return filterChainError(exchange, "인증 토큰이 존재하지 않습니다.")
+                return filterChainError(exchange, ExceptionMessage.WRONG_PATH.description)
             }
 
             return chain.filter(exchange)

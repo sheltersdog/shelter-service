@@ -1,6 +1,7 @@
 package com.sheltersdog.core.security.jwt
 
 import com.sheltersdog.core.dto.JwtDto
+import com.sheltersdog.core.exception.ExceptionMessage
 import io.jsonwebtoken.Jwts
 import io.jsonwebtoken.SignatureAlgorithm
 import io.jsonwebtoken.security.SignatureException
@@ -125,7 +126,7 @@ class JwtProvider(@Autowired val jwtProperties: JwtProperties) {
             .body
         if (body is Map<*, *>) return body
 
-        throw SignatureException("token is not mine!!")
+        throw SignatureException(ExceptionMessage.TOKEN_PARSE_EXCEPTION.description)
     }
 
 
