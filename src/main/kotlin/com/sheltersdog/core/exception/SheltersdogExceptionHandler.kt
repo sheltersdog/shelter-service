@@ -4,7 +4,9 @@ import com.sheltersdog.core.properties.ActiveProperties
 import io.jsonwebtoken.ExpiredJwtException
 import io.jsonwebtoken.IncorrectClaimException
 import io.jsonwebtoken.MissingClaimException
+import io.jsonwebtoken.security.SignatureException
 import jakarta.validation.ValidationException
+import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.dao.DataIntegrityViolationException
@@ -17,9 +19,9 @@ import java.io.StringWriter
 
 @ControllerAdvice
 class SheltersdogExceptionHandler @Autowired constructor(
-    val activeProperties: ActiveProperties
+    val activeProperties: ActiveProperties,
 ) {
-    val log = LoggerFactory.getLogger(this::class.java)
+    val log: Logger = LoggerFactory.getLogger(this::class.java)
 
     @ExceptionHandler(Exception::class)
     suspend fun handleException(e: Exception): ResponseEntity<Any> {
@@ -47,17 +49,14 @@ class SheltersdogExceptionHandler @Autowired constructor(
         return ResponseEntity.status(e.httpStatus).body(e.message)
     }
 
-    @ExceptionHandler(ValidationException::class)
     fun handleValidationException(e: ValidationException): ResponseEntity<Any> {
         return ResponseEntity.badRequest().body(e.message?:"에러가 발생하였습니다.")
     }
 
-    @ExceptionHandler(DataIntegrityViolationException::class)
     fun handleDataIntegrityViolationException(e: DataIntegrityViolationException): ResponseEntity<Any> {
         return ResponseEntity.badRequest().body(e.message?:"에러가 발생하였습니다.")
     }
 
-    @ExceptionHandler(ExpiredJwtException::class, IncorrectClaimException::class, MissingClaimException::class)
     fun handleAuthorizationException(e: Exception): ResponseEntity<Any> {
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(e.message?:"에러가 발생하였습니다.")
     }
