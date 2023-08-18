@@ -1,6 +1,7 @@
 package com.sheltersdog.oauth
 
 import com.sheltersdog.core.exception.SheltersdogException
+import com.sheltersdog.core.log.LogMessage
 import com.sheltersdog.core.model.AUTHORIZATION
 import com.sheltersdog.core.properties.KakaoProperties
 import com.sheltersdog.oauth.dto.KakaoOauthTokenDto
@@ -47,8 +48,13 @@ class OauthClient @Autowired constructor(
                         .body!!
                 }
 
-                log.error("getKakaoToken -> getKakaoToken fail. statusCode: ${response.statusCode()}, body: ${response.awaitBody<Any>()}")
-                throw SheltersdogException("카카오 토큰을 조회하는데 실패하였습니다.")
+                throw SheltersdogException(
+                    logMessage = LogMessage.NOT_FOUND_KAKAO_TOKEN,
+                    variables = mapOf(
+                        "statusCode" to response.statusCode(),
+                        "body" to response.awaitBody(),
+                    ),
+                )
             }
     }
 
@@ -70,8 +76,14 @@ class OauthClient @Autowired constructor(
                         .body!!
                 }
 
-                log.error("getKakaoUserInfo -> getKakaoTUserInfo fail. request accessToken: $accessToken, statusCode: ${response.statusCode()}, body: ${response.awaitBody<Any>()}")
-                throw SheltersdogException("카카오 유저를 조회하는데 실패하였습니다.")
+                throw SheltersdogException(
+                    logMessage = LogMessage.NOT_FOUND_KAKAO_USER_INFO,
+                    variables = mapOf(
+                        "accessToken" to accessToken,
+                        "statusCode" to response.statusCode(),
+                        "body" to response.awaitBody(),
+                    )
+                )
             }
     }
 }

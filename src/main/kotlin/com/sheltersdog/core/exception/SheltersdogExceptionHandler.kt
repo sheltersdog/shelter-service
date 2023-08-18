@@ -4,7 +4,6 @@ import com.sheltersdog.core.properties.ActiveProperties
 import io.jsonwebtoken.ExpiredJwtException
 import io.jsonwebtoken.IncorrectClaimException
 import io.jsonwebtoken.MissingClaimException
-import io.jsonwebtoken.security.SignatureException
 import jakarta.validation.ValidationException
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -36,29 +35,31 @@ class SheltersdogExceptionHandler @Autowired constructor(
             is DataIntegrityViolationException -> handleDataIntegrityViolationException(e)
             is ExpiredJwtException,
             is IncorrectClaimException,
-            is MissingClaimException -> handleAuthorizationException(e)
+            is MissingClaimException,
+            -> handleAuthorizationException(e)
 
             else -> ResponseEntity.internalServerError()
-                .body(e.message?:"에러가 발생하였습니다.")
+                .body(e.message ?: "에러가 발생하였습니다.")
         }
     }
 
     suspend fun handleSheltersdogException(
-        e: SheltersdogException
+        e: SheltersdogException,
     ): ResponseEntity<Any> {
+        log.debug(e.logMessage.print(stackTrace = e.stackTraces), e.variables)
         return ResponseEntity.status(e.httpStatus).body(e.message)
     }
 
     fun handleValidationException(e: ValidationException): ResponseEntity<Any> {
-        return ResponseEntity.badRequest().body(e.message?:"에러가 발생하였습니다.")
+        return ResponseEntity.badRequest().body(e.message ?: "에러가 발생하였습니다.")
     }
 
     fun handleDataIntegrityViolationException(e: DataIntegrityViolationException): ResponseEntity<Any> {
-        return ResponseEntity.badRequest().body(e.message?:"에러가 발생하였습니다.")
+        return ResponseEntity.badRequest().body(e.message ?: "에러가 발생하였습니다.")
     }
 
     fun handleAuthorizationException(e: Exception): ResponseEntity<Any> {
-        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(e.message?:"에러가 발생하였습니다.")
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(e.message ?: "에러가 발생하였습니다.")
     }
 
     private fun getPrintStackTrace(e: Exception): String {

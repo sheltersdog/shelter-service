@@ -2,11 +2,13 @@ package com.sheltersdog.user
 
 import com.sheltersdog.core.dto.JwtDto
 import com.sheltersdog.core.exception.SheltersdogException
+import com.sheltersdog.core.log.LogMessage
 import com.sheltersdog.core.model.SocialType
 import com.sheltersdog.core.security.jwt.JwtProvider
 import com.sheltersdog.user.dto.request.UserJoinRequest
 import com.sheltersdog.user.dto.request.UserLoginRequest
 import com.sheltersdog.user.entity.User
+import com.sheltersdog.user.entity.ifNullThrow
 import com.sheltersdog.user.entity.model.UserStatus
 import com.sheltersdog.user.repository.UserRepository
 import org.slf4j.Logger
@@ -29,8 +31,10 @@ class UserService @Autowired constructor(
 
         val isExist = userRepository.isExistUser(requestBody.oauthId, requestBody.email, UserStatus.ACTIVE)
         if (isExist) {
-            log.debug("fun postUser -> Already exist user, requestBody: $requestBody")
-            throw SheltersdogException("이미 가입된 유저입니다.")
+            throw SheltersdogException(
+                logMessage = LogMessage.ALREADY_JOIN_USER,
+                variables = mapOf("requestBody" to requestBody)
+            )
         }
 
         val kakaoOauthId = if (requestBody.socialType == SocialType.KAKAO) {
@@ -59,12 +63,7 @@ class UserService @Autowired constructor(
         val user = userRepository.findByOauthIdAndSocialType(
             kakaoOauthId = requestBody.oauthId,
             socialType = requestBody.socialType,
-        )
-
-        if (user == null) {
-            log.debug("login info is wrong. requestBody: $requestBody")
-            throw SheltersdogException("존재하지 않는 유저입니다.")
-        }
+        ).ifNullThrow(mapOf("requestBody" to requestBody))
 
         return jwtProvider.generateToken(id = user.id.toString())
     }

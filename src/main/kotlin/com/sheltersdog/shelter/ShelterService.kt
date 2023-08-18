@@ -1,15 +1,15 @@
 package com.sheltersdog.shelter
 
 import com.sheltersdog.address.repository.AddressRepository
-import com.sheltersdog.core.exception.SheltersdogException
 import com.sheltersdog.shelter.dto.request.PostShelterRequest
 import com.sheltersdog.shelter.dto.response.ShelterDto
 import com.sheltersdog.shelter.entity.Shelter
 import com.sheltersdog.shelter.entity.ShelterJoinUser
+import com.sheltersdog.shelter.entity.ifNullThrow
 import com.sheltersdog.shelter.entity.model.ShelterAuthority
 import com.sheltersdog.shelter.mapper.shelterToDto
 import com.sheltersdog.shelter.repository.ShelterRepository
-import com.sheltersdog.user.entity.model.UserStatus
+import com.sheltersdog.user.entity.ifNullOrNotActiveThrow
 import com.sheltersdog.user.repository.UserRepository
 import kotlinx.coroutines.reactive.awaitSingle
 import org.slf4j.Logger
@@ -31,10 +31,7 @@ class ShelterService @Autowired constructor(
     suspend fun postShelter(requestBody: PostShelterRequest): ShelterDto {
         val userId = (ReactiveSecurityContextHolder.getContext().awaitSingle().authentication.principal as User).username
         val user = userRepository.findById(userId)
-        if (user == null || user.status != UserStatus.ACTIVE) {
-            log.debug("postShelter :: 유저의 상태가 ${UserStatus.ACTIVE}가 아닙니다. userId: $userId")
-            throw SheltersdogException("허용되지 않은 사용자의 접근입니다.")
-        }
+            .ifNullOrNotActiveThrow(mapOf("userId" to userId))
 
         val address = addressRepository.getAddressByRegionCode(requestBody.regionCode)
         val shelter = Shelter(
@@ -72,11 +69,9 @@ class ShelterService @Autowired constructor(
     }
 
     suspend fun getShelter(id: String): ShelterDto {
-        val shelter = shelterRepository.findById(id)
-        if (shelter == null) {
-            log.debug("getShelter :: 존재하지 않는 보호소입니다. shelterId: $id")
-            throw SheltersdogException("존재하지 않는 보호소입니다.")
-        }
+        val shelter = shelterRepository.findById(id).ifNullThrow(
+            variables = mapOf("shelterId" to id)
+        )
         return shelterToDto(shelter, isIncludeAddress = true)
     }
 

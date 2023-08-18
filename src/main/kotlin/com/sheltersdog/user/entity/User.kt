@@ -1,5 +1,7 @@
 package com.sheltersdog.user.entity
 
+import com.sheltersdog.core.exception.SheltersdogException
+import com.sheltersdog.core.log.LogMessage
 import com.sheltersdog.core.model.SocialType
 import com.sheltersdog.user.entity.model.UserStatus
 import org.bson.types.ObjectId
@@ -27,3 +29,19 @@ data class User(
     val createdDate: LocalDate? = null,
     val modifyDate: LocalDate? = null,
 )
+
+fun User?.ifNullThrow(variables: Map<String, Any?>): User {
+    if (this != null) return this
+    throw SheltersdogException(
+        logMessage = LogMessage.NOT_FOUND_USER,
+        variables = variables,
+    )
+}
+
+fun User?.ifNullOrNotActiveThrow(variables: Map<String, Any?>): User {
+    if (this != null && this.status == UserStatus.ACTIVE) return this
+    throw SheltersdogException(
+        logMessage = LogMessage.NOT_FOUND_USER,
+        variables = variables,
+    )
+}

@@ -1,6 +1,7 @@
 package com.sheltersdog.image
 
 import com.sheltersdog.core.exception.SheltersdogException
+import com.sheltersdog.core.log.LogMessage
 import com.sheltersdog.core.model.FileType
 import com.sheltersdog.core.util.fileTypeCheck
 import kotlinx.coroutines.flow.Flow
@@ -22,7 +23,13 @@ class ImageController @Autowired constructor(
         @RequestPart("file") requestPart: FilePart
     ): String {
         if (!fileTypeCheck(FileType.IMAGE, requestPart)) {
-            throw SheltersdogException("Error: ${requestPart.filename()} is not in (JPG, JPEG, PNG)")
+            throw SheltersdogException(
+                logMessage = LogMessage.FILE_TYPE_WRONG,
+                variables = mapOf(
+                    "filename" to requestPart.filename(),
+                    "EnableType" to "JPG, JPEG, PNG",
+                ),
+            )
         }
         return imageService.upload(requestPart)
     }
@@ -31,7 +38,13 @@ class ImageController @Autowired constructor(
     fun uploadAll(@RequestPart("files") requestParts: Flow<FilePart>): Flow<String> {
         return requestParts.map { file ->
             if (!fileTypeCheck(FileType.IMAGE, file)) {
-                throw SheltersdogException("Error: ${file.filename()} is not in (JPG, JPEG, PNG)")
+                throw SheltersdogException(
+                    logMessage = LogMessage.FILE_TYPE_WRONG,
+                    variables = mapOf(
+                        "filename" to file.filename(),
+                        "EnableType" to "JPG, JPEG, PNG",
+                    ),
+                )
             }
             imageService.upload(file)
         }

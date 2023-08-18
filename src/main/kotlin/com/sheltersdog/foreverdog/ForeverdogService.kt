@@ -1,8 +1,8 @@
 package com.sheltersdog.foreverdog
 
 import com.sheltersdog.core.event.EventBus
+import com.sheltersdog.core.exception.SheltersdogException
 import com.sheltersdog.core.log.LogMessage
-import com.sheltersdog.core.log.loggingAndException
 import com.sheltersdog.core.util.updateCheck
 import com.sheltersdog.core.util.yyyyMMddToLocalDate
 import com.sheltersdog.foreverdog.dto.request.GetForeverdogsRequest
@@ -51,9 +51,13 @@ class ForeverdogService @Autowired constructor(
         )
 
         if (!hasAuthority) {
-            throw LogMessage.ACCESS_DENIED.loggingAndException(
-                staceTraceElement = Thread.currentThread().stackTrace[1],
-                variables = mapOf("userId" to userId)
+            throw SheltersdogException(
+                logMessage = LogMessage.ACCESS_DENIED,
+                variables = mapOf(
+                    "userId" to userId,
+                    "shelterId" to requestBody.shelterId,
+                    "ShelterAuthority" to ShelterAuthority.DOG_MANAGE,
+                ),
             )
         }
 
@@ -110,9 +114,12 @@ class ForeverdogService @Autowired constructor(
         if (!hasAuthority) {
             val userId =
                 (ReactiveSecurityContextHolder.getContext().awaitSingle().authentication.principal as User).username
-            throw LogMessage.ACCESS_DENIED.loggingAndException(
-                staceTraceElement = Thread.currentThread().stackTrace[1],
-                variables = mapOf("userId" to userId, "foreverdogId" to foreverdogId)
+            throw SheltersdogException(
+                logMessage = LogMessage.ACCESS_DENIED,
+                variables = mapOf(
+                    "userId" to userId, "foreverdogId" to foreverdogId,
+                    "ShelterAuthority" to ShelterAuthority.DOG_MANAGE,
+                ),
             )
         }
 
@@ -122,8 +129,8 @@ class ForeverdogService @Autowired constructor(
                 Pair(Foreverdog::status, status)
             )
         ).updateCheck(
+            tableName = Foreverdog::class.java.name,
             variables = mapOf(
-                "TABLE" to "Foreverdog",
                 "foreverdogId" to foreverdogId,
                 "status" to status,
             )

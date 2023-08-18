@@ -1,23 +1,21 @@
 package com.sheltersdog.address.dto
 
 import com.fasterxml.jackson.annotation.JsonProperty
+import com.sheltersdog.core.exception.SheltersdogException
 import com.sheltersdog.core.log.LogMessage
-import com.sheltersdog.core.log.loggingAndException
 
 data class KakaoDocument(
     val documents: List<KakaoAddress>,
 )
 
 fun KakaoDocument?.ifNullThrow(
-    logMessage: LogMessage = LogMessage.NOT_FOUND_KAKAO_DOCUMENT,
-    exceptionMessage: String? = null,
     variables: Map<String, Any?>,
 ): KakaoDocument {
     if (this != null) return this
 
-    throw logMessage.loggingAndException(
+    throw SheltersdogException(
+        logMessage = LogMessage.NOT_FOUND_KAKAO_DOCUMENT,
         variables = variables,
-        exceptionMessage = exceptionMessage,
     )
 }
 

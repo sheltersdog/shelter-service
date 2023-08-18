@@ -1,6 +1,6 @@
 package com.sheltersdog.volunteer
 
-import com.sheltersdog.core.exception.SheltersdogException
+import com.sheltersdog.core.util.notStringThrow
 import com.sheltersdog.volunteer.dto.request.GetVolunteerCategoriesRequest
 import com.sheltersdog.volunteer.dto.request.GetVolunteersRequest
 import com.sheltersdog.volunteer.dto.request.PostVolunteer
@@ -33,11 +33,7 @@ class VolunteerController @Autowired constructor(val volunteerService: Volunteer
 
     @PutMapping("/list/status")
     suspend fun putAllVolunteerStatusByShelterId(@RequestBody requestBody: Map<String, Any>): String {
-        if (requestBody["shelterId"] !is String) {
-            log.debug("요청 바디가 올바르지 않습니다.: shelterId: $requestBody")
-            throw SheltersdogException("잘못된 요청입니다.")
-        }
-        val shelterId = requestBody["shelterId"] as String
+        val shelterId = requestBody.notStringThrow("shelterId")
         volunteerService.putAllVolunteerStatusByShelterId(shelterId = shelterId)
         return ""
     }

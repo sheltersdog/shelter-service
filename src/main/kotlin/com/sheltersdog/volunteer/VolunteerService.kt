@@ -2,9 +2,12 @@ package com.sheltersdog.volunteer
 
 import com.sheltersdog.core.event.EventBus
 import com.sheltersdog.core.exception.SheltersdogException
+import com.sheltersdog.core.log.LogMessage
 import com.sheltersdog.core.model.SheltersdogStatus
+import com.sheltersdog.core.util.updateCheck
 import com.sheltersdog.core.util.yyyyMMddToLocalDate
 import com.sheltersdog.shelter.entity.Shelter
+import com.sheltersdog.shelter.entity.ifNullThrow
 import com.sheltersdog.shelter.entity.model.ShelterAuthority
 import com.sheltersdog.shelter.event.SaveVolunteerEvent
 import com.sheltersdog.shelter.repository.ShelterRepository
@@ -15,6 +18,7 @@ import com.sheltersdog.volunteer.dto.request.PostVolunteer
 import com.sheltersdog.volunteer.dto.request.PutVolunteer
 import com.sheltersdog.volunteer.dto.response.VolunteerDto
 import com.sheltersdog.volunteer.entity.Volunteer
+import com.sheltersdog.volunteer.entity.ifNullThrow
 import com.sheltersdog.volunteer.entity.model.SourceType
 import com.sheltersdog.volunteer.mapper.volunteerToDto
 import com.sheltersdog.volunteer.repository.VolunteerRepository
@@ -70,10 +74,7 @@ class VolunteerService @Autowired constructor(
 
     suspend fun putVolunteer(requestBody: PutVolunteer): VolunteerDto? {
         val volunteer = volunteerRepository.findById(requestBody.id)
-        if (volunteer == null) {
-            log.debug("putVolunteer :: 봉사 id값이 다릅니다. requestBody: $requestBody")
-            throw SheltersdogException("존재하지 않는 봉사 정보입니다.")
-        }
+            .ifNullThrow(variables = mapOf("requestBody" to requestBody))
 
         volunteer.shelterId?.let { shelterId ->
             val shelter = shelterRepository.findById(shelterId)
@@ -92,11 +93,16 @@ class VolunteerService @Autowired constructor(
                     shelterAuthorities = listOf(ShelterAuthority.ADMIN, ShelterAuthority.VOLUNTEER_MANAGE)
                 )
             ) {
-                log.debug("putVolunteer :: $userId 는 봉사 정보를 수정할 권한이 없습니다. :: shelterId = $shelterId, ${ShelterAuthority.VOLUNTEER_MANAGE}")
-                throw SheltersdogException("$userId 는 봉사 정보를 업데이트할 권한이 없습니다.")
+                throw SheltersdogException(
+                    logMessage = LogMessage.ACCESS_DENIED,
+                    variables = mapOf(
+                        "userId" to userId,
+                        "shelterId" to shelterId,
+                        "ShelterAuthority" to ShelterAuthority.VOLUNTEER_MANAGE,
+                    )
+                )
             }
         }
-
 
         val startDate = requestBody.startDate?.let { yyyyMMddToLocalDate(it) }
         val endDate = requestBody.endDate?.let { yyyyMMddToLocalDate(it) }
@@ -124,12 +130,10 @@ class VolunteerService @Autowired constructor(
                 Pair(Volunteer::exposeStartDate, exposeStartDate),
                 Pair(Volunteer::exposeEndDate, exposeEndDate),
             )
+        ).updateCheck(
+            tableName = Volunteer::class.java.name,
+            variables = mapOf("requestBody" to requestBody),
         )
-
-        if (!updateResult.wasAcknowledged()) {
-            log.debug("putVolunteer :: 봉사 정보 업데이트에 실패했습니다. $requestBody")
-            throw SheltersdogException("봉사 정보 업데이트에 실패했습니다.")
-        }
 
         val updateVolunteer = volunteerRepository.findById(updateResult.upsertedId.toString())
         return updateVolunteer?.let {
@@ -151,8 +155,14 @@ class VolunteerService @Autowired constructor(
                     shelterAuthorities = listOf(ShelterAuthority.ADMIN, ShelterAuthority.VOLUNTEER_MANAGE)
                 )
             ) {
-                log.debug("postVolunteer -> $userId 는 봉사 정보를 수정할 권한이 없습니다. :: shelterId = ${shelter.id}, ${ShelterAuthority.VOLUNTEER_MANAGE}")
-                throw SheltersdogException("회원에게 쉼터의 봉사 정보를 업데이트할 권한이 없습니다.")
+                throw SheltersdogException(
+                    logMessage = LogMessage.ACCESS_DENIED,
+                    variables = mapOf(
+                        "userId" to userId,
+                        "shelterId" to shelter.id,
+                        "ShelterAuthority" to ShelterAuthority.VOLUNTEER_MANAGE,
+                    )
+                )
             }
 
             val saveEntity = volunteerRepository.save(
@@ -205,10 +215,7 @@ class VolunteerService @Autowired constructor(
 
     suspend fun putAllVolunteerStatusByShelterId(shelterId: String) {
         val shelter = shelterRepository.findById(shelterId)
-        if (shelter == null) {
-            log.debug("존재하지 않는 쉼터입니다. shelterId: $shelterId")
-            throw SheltersdogException("존재하지 않는 쉼터입니다.")
-        }
+            .ifNullThrow(mapOf("shelterId" to shelterId))
 
         val userId =
             (ReactiveSecurityContextHolder.getContext().awaitSingle().authentication.principal as User).username
@@ -219,18 +226,22 @@ class VolunteerService @Autowired constructor(
                 shelterAuthorities = listOf(ShelterAuthority.ADMIN, ShelterAuthority.VOLUNTEER_MANAGE)
             )
         ) {
-            log.debug("putAllVolunteerStatusByShelterId :: $userId 는 봉사 정보를 수정할 권한이 없습니다. :: shelterId = $shelterId, ${ShelterAuthority.VOLUNTEER_MANAGE}")
-            throw SheltersdogException("회원에게 쉼터의 봉사 정보를 업데이트할 권한이 없습니다.")
+            throw SheltersdogException(
+                logMessage = LogMessage.ACCESS_DENIED,
+                variables = mapOf(
+                    "userId" to userId,
+                    "shelterId" to shelter.id,
+                    "ShelterAuthority" to ShelterAuthority.VOLUNTEER_MANAGE,
+                )
+            )
         }
 
-        val updateResult = volunteerRepository.updateAllByShelterId(
+        volunteerRepository.updateAllByShelterId(
             shelterId = shelterId,
             updateFields = mapOf(Pair(Volunteer::status, SheltersdogStatus.INACTIVE))
+        ).updateCheck(
+            tableName = Volunteer::class.java.name,
+            variables = mapOf("shelterId" to shelterId)
         )
-
-        if (!updateResult.wasAcknowledged()) {
-            log.debug("putAllVolunteerStatusByShelterId :: 모든 봉사 비공개를 실패했습니다. $shelterId")
-            throw SheltersdogException("봉사 정보 업데이트에 실패했습니다.")
-        }
     }
 }

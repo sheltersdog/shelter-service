@@ -1,19 +1,21 @@
 package com.sheltersdog.core.util
 
 import com.mongodb.client.result.UpdateResult
+import com.sheltersdog.core.exception.SheltersdogException
 import com.sheltersdog.core.log.LogMessage
-import com.sheltersdog.core.log.loggingAndException
 
 fun UpdateResult.updateCheck(
-    logMessage: LogMessage = LogMessage.DB_UPDATE_FAIL,
-    exceptionMessage: String? = null,
-    variables: Map<String, Any?>
-) {
-    if (this.wasAcknowledged()) return
+    variables: Map<String, Any?>,
+    tableName: String,
+): UpdateResult {
+    if (this.wasAcknowledged()) return this
 
-    throw logMessage.loggingAndException(
-        exceptionMessage = exceptionMessage,
-        variables = variables,
+    val copyVariables = variables.toMutableMap()
+    copyVariables["TableName"] = tableName
+    val va = variables
+    throw SheltersdogException(
+        logMessage = LogMessage.DB_UPDATE_FAIL,
+        variables = copyVariables,
     )
 
 }

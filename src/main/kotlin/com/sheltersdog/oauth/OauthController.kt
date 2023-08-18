@@ -1,10 +1,10 @@
 package com.sheltersdog.oauth
 
 import com.sheltersdog.core.exception.SheltersdogException
+import com.sheltersdog.core.log.LogMessage
 import com.sheltersdog.core.properties.KakaoProperties
 import com.sheltersdog.oauth.dto.KakaoUserInfoDto
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.http.HttpStatus
 import org.springframework.web.bind.annotation.*
 
 @RestController
@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.*
 class OauthController @Autowired constructor(
     val oauthService: OauthService,
     val kakaoProperties: KakaoProperties,
-){
+) {
 
     @GetMapping("/kakao")
     suspend fun redirectKakao(@RequestParam("code") code: String): KakaoUserInfoDto {
@@ -23,11 +23,16 @@ class OauthController @Autowired constructor(
     suspend fun leaveKakao(
         @RequestParam("user_id") id: Long,
         @RequestParam("referrer_type") referrerType: String,
-        @RequestHeader("Authorization") authorization: String,) {
+        @RequestHeader("Authorization") authorization: String,
+    ) {
         if (authorization.isBlank() || authorization != "KakaoAK ${kakaoProperties.adminKey}") {
             throw SheltersdogException(
-                message = "Authorization is wrong",
-                httpStatus = HttpStatus.BAD_REQUEST,
+                logMessage = LogMessage.KAKAO_LEAVE_MESSAGE,
+                variables = mapOf(
+                    "authorization" to authorization,
+                    "user_id" to id,
+                    "referrer_type" to referrerType
+                ),
             )
         }
         oauthService.leaveKakao(id)
