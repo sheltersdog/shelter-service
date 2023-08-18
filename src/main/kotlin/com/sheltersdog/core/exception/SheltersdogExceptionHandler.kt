@@ -24,7 +24,7 @@ class SheltersdogExceptionHandler @Autowired constructor(
 
     @ExceptionHandler(Exception::class)
     suspend fun handleException(e: Exception): ResponseEntity<Any> {
-        if (activeProperties.active != "prod") {
+        if (activeProperties.active != "prod" && e !is SheltersdogException) {
             val message = getPrintStackTrace(e)
             log.error(message)
         }
