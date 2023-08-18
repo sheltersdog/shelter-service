@@ -8,9 +8,10 @@ enum class ExceptionMessage(val description: String) {
 
     TOKEN_PARSE_EXCEPTION("토큰 검증에 실패하였습니다."),
 
-    NOT_FOUND_ADDRESS("Address를 찾을 수 없습니다."),
+    NOT_FOUND_ADDRESS("주소를 찾을 수 없습니다."),
 
     NOT_FOUND_KAKAO_DOCUMENT("카카오 주소 조회를 실패했습니다."),
+    NOT_FOUND_SHELTER("보호소나 쉼터를 찾을 수 없습니다."),
     ;
 
 }

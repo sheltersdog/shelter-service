@@ -9,8 +9,8 @@ import org.springframework.http.HttpStatus
 enum class LogMessage(private val description: String) {
     NOT_FOUND_ADDRESS("존재하지 않는 Address 데이터입니다. {}"),
 
-    NOT_FOUND_KAKAO_DOCUMENT("카카오 주소 조회를 실패했습니다.. {}"),
-    NOT_FOUND_SHELTER(""),
+    NOT_FOUND_KAKAO_DOCUMENT("카카오 주소 조회를 실패했습니다. {}"),
+    NOT_FOUND_SHELTER("존재하지 않는 Shelter 데이터입니다. {}"),
     ;
 
     fun print(stackTrace: StackTraceElement): String {
