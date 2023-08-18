@@ -1,29 +1,25 @@
 package com.sheltersdog.address
 
-import com.github.doyaaaaaken.kotlincsv.dsl.csvReader
 import com.sheltersdog.address.dto.AddressDto
 import com.sheltersdog.address.dto.KakaoDocument
-import com.sheltersdog.address.entity.Address
+import com.sheltersdog.address.dto.ifNullThrow
+import com.sheltersdog.address.entity.ifNullThrow
 import com.sheltersdog.address.model.AddressType
 import com.sheltersdog.address.model.getPropertyCode
 import com.sheltersdog.address.model.getPropertyName
 import com.sheltersdog.address.repository.AddressRepository
 import com.sheltersdog.core.properties.KakaoProperties
-import com.sheltersdog.core.util.yyyyMMddToLocalDate
-import kotlinx.coroutines.reactive.awaitSingle
+import kotlinx.coroutines.reactive.awaitFirstOrNull
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.MediaType
 import org.springframework.stereotype.Service
 import org.springframework.web.reactive.function.client.WebClient
-import org.springframework.web.reactive.function.client.bodyToMono
-import reactor.core.publisher.Flux
-import reactor.core.publisher.Mono
 
 @Service
 class AddressService @Autowired constructor(
     val kakaoProperties: KakaoProperties,
     val addressRepository: AddressRepository,
-    val webClient: WebClient
+    val webClient: WebClient,
 ) {
 
 //    @PostConstruct
@@ -103,7 +99,7 @@ class AddressService @Autowired constructor(
         analyzeType: String,
         page: Int,
         size: Int,
-        keyword: String
+        keyword: String,
     ): KakaoDocument {
         val uri =
             "https://dapi.kakao.com/v2/local/search/address.json?analyze_type=${analyzeType}&page=${page}&size=${size}&query=${keyword}"
@@ -112,17 +108,24 @@ class AddressService @Autowired constructor(
             .uri(uri)
             .header("Authorization", "KakaoAK ${kakaoProperties.apiKey}")
             .accept(MediaType.APPLICATION_JSON)
-            .exchangeToMono {it.bodyToMono(KakaoDocument::class.java) }
-            .awaitSingle()
+            .exchangeToMono { it.bodyToMono(KakaoDocument::class.java) }
+            .awaitFirstOrNull()
+            .ifNullThrow(variables = mapOf("url" to uri))
     }
 
     suspend fun getAddresses(
         type: AddressType,
         parentCode: String,
-        keyword: String
+        keyword: String,
     ): AddressDto {
         val address = addressRepository.getAddresses(
             type, parentCode, keyword
+        ).ifNullThrow(
+            variables = mapOf(
+                "type" to type,
+                "parentCode" to parentCode,
+                "keyword" to keyword
+            )
         )
 
         return AddressDto(

@@ -1,10 +1,31 @@
 package com.sheltersdog.address.dto
 
 import com.fasterxml.jackson.annotation.JsonProperty
+import com.sheltersdog.core.exception.SheltersdogException
+import com.sheltersdog.core.log.LogMessage
+import com.sheltersdog.core.log.exceptionMessage
+import org.slf4j.LoggerFactory
+import org.springframework.http.HttpStatus
 
 data class KakaoDocument(
     val documents: List<KakaoAddress>,
 )
+
+fun KakaoDocument?.ifNullThrow(
+    logMessage: LogMessage = LogMessage.NOT_FOUND_KAKAO_DOCUMENT,
+    exceptionMessage: String? = null,
+    variables: Map<String, Any?>,
+): KakaoDocument {
+    if (this != null) return this
+
+    val log = LoggerFactory.getLogger(Thread.currentThread().stackTrace[2].className)
+    log.debug(logMessage.description, variables.toString())
+    val message = exceptionMessage ?: logMessage.exceptionMessage().description
+    throw SheltersdogException(
+        message = message,
+        httpStatus = HttpStatus.INTERNAL_SERVER_ERROR,
+    )
+}
 
 data class KakaoAddress(
     @field:JsonProperty(value = "address_name")
