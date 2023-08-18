@@ -1,5 +1,6 @@
 package com.sheltersdog.foreverdog
 
+import com.sheltersdog.core.util.notStringThrow
 import com.sheltersdog.foreverdog.dto.request.GetForeverdogsRequest
 import com.sheltersdog.foreverdog.dto.request.PostForeverdogRequest
 import com.sheltersdog.foreverdog.dto.response.ForeverdogDto
@@ -25,8 +26,10 @@ class ForeverdogController @Autowired constructor(
 
     @PutMapping("/status")
     suspend fun putForeverdogStatus(@RequestBody requestBody: Map<String, Any>): ForeverdogDto {
-        val foreverdogId = requestBody["foreverdogId"] as String
-        val status = ForeverdogStatus.valueOf(requestBody["status"].toString())
+        val foreverdogId = requestBody.notStringThrow("foreverdogId")
+        val status = ForeverdogStatus.of(
+            requestBody.notStringThrow("status")
+        )
 
         return foreverdogService.putForeverdogStatus(
             foreverdogId = foreverdogId,
