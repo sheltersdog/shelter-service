@@ -1,14 +1,15 @@
 package com.sheltersdog.foreverdog
 
 import com.sheltersdog.core.event.EventBus
-import com.sheltersdog.core.exception.SheltersdogException
 import com.sheltersdog.core.log.LogMessage
 import com.sheltersdog.core.log.loggingAndException
+import com.sheltersdog.core.util.updateCheck
 import com.sheltersdog.core.util.yyyyMMddToLocalDate
 import com.sheltersdog.foreverdog.dto.request.GetForeverdogsRequest
 import com.sheltersdog.foreverdog.dto.request.PostForeverdogRequest
 import com.sheltersdog.foreverdog.dto.response.ForeverdogDto
 import com.sheltersdog.foreverdog.entity.Foreverdog
+import com.sheltersdog.foreverdog.entity.ifNullThrow
 import com.sheltersdog.foreverdog.entity.model.ForeverdogStatus
 import com.sheltersdog.foreverdog.mapper.foreverdogToDto
 import com.sheltersdog.foreverdog.repository.ForeverdogRepository
@@ -93,10 +94,11 @@ class ForeverdogService @Autowired constructor(
 
     suspend fun putForeverdogStatus(foreverdogId: String, status: ForeverdogStatus): ForeverdogDto {
         val entity = foreverdogRepository.findById(foreverdogId)
-        if (entity == null) {
-            log.debug("putForeverdogStatus :: 존재하지 않는 데이터입니다. foreverdogId: $foreverdogId")
-            throw SheltersdogException("상태 변경에 실패하였습니다.")
-        }
+            .ifNullThrow(
+                variables = mapOf(
+                    "foreverdogId" to foreverdogId
+                )
+            )
 
         val hasAuthority = entity.shelter?.sheltersAdmins?.let { shelterAdmins ->
             hasAuthority(
@@ -106,24 +108,27 @@ class ForeverdogService @Autowired constructor(
         } ?: false
 
         if (!hasAuthority) {
-            val userId = (ReactiveSecurityContextHolder.getContext().awaitSingle().authentication.principal as User).username
+            val userId =
+                (ReactiveSecurityContextHolder.getContext().awaitSingle().authentication.principal as User).username
             throw LogMessage.ACCESS_DENIED.loggingAndException(
                 staceTraceElement = Thread.currentThread().stackTrace[1],
                 variables = mapOf("userId" to userId, "foreverdogId" to foreverdogId)
             )
         }
 
-        val result = foreverdogRepository.updateById(
+        foreverdogRepository.updateById(
             id = foreverdogId,
             updateFields = mapOf(
                 Pair(Foreverdog::status, status)
             )
+        ).updateCheck(
+            variables = mapOf(
+                "TABLE" to "Foreverdog",
+                "foreverdogId" to foreverdogId,
+                "status" to status,
+            )
         )
 
-        if (!result.wasAcknowledged()) {
-            log.debug("putForeverdogStatus :: 강아지 상태 변경에 실패하였습니다. foreverdogId: $foreverdogId, status: $status")
-            throw SheltersdogException("상태 변경에 실패하였습니다.")
-        }
         return foreverdogToDto(
             entity = foreverdogRepository.findById(foreverdogId)!!
         )
