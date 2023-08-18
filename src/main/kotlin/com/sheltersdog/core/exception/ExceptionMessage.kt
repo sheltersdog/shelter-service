@@ -16,6 +16,9 @@ enum class ExceptionMessage(val description: String) {
 
     VALID_CHECK_WRONG("값이 존재하지 않거나 올바르지 않습니다."),
     ACCESS_DENIED("접근 권한이 없습니다."),
+
+    NOT_FOUND_FOREVERDOG("강아지를 찾을 수 없습니다."),
+    DB_UPDATE_FAIL("업데이트에 실패하였습니다."),
     ;
 
 }

@@ -15,6 +15,9 @@ enum class LogMessage(private val description: String) {
 
     ACCESS_TOKEN_WRONG("토큰 정보가 올바르지 않습니다. {}"),
     ACCESS_DENIED("접근 권한이 없습니다. {}"),
+
+    NOT_FOUND_FOREVERDOG("존재하지 않는 Foreverdog 데이터입니다. {}"),
+    DB_UPDATE_FAIL("데이터베이스 업데이트에 실패하였습니다. {}"),
     ;
 
     fun print(stackTrace: StackTraceElement): String {

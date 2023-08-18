@@ -1,5 +1,7 @@
 package com.sheltersdog.foreverdog.entity
 
+import com.sheltersdog.core.log.LogMessage
+import com.sheltersdog.core.log.loggingAndException
 import com.sheltersdog.core.model.Gender
 import com.sheltersdog.foreverdog.entity.model.ForeverdogStatus
 import com.sheltersdog.foreverdog.entity.model.SocializationLevel
@@ -43,3 +45,17 @@ data class Foreverdog(
 
     val searchKeyword: String,
 )
+
+fun Foreverdog?.ifNullThrow(
+    logMessage: LogMessage = LogMessage.NOT_FOUND_FOREVERDOG,
+    exceptionMessage: String? = null,
+    variables: Map<String, Any?>,
+): Foreverdog {
+    if (this != null) return this
+
+    throw logMessage.loggingAndException(
+        variables = variables,
+        exceptionMessage = exceptionMessage,
+    )
+
+}
