@@ -14,6 +14,7 @@ enum class LogMessage(private val description: String) {
     VALID_CHECK_WRONG("{}값이 존재하지 않거나 올바르지 않습니다. {}"),
 
     ACCESS_TOKEN_WRONG("토큰 정보가 올바르지 않습니다. {}"),
+    ACCESS_DENIED("접근 권한이 없습니다. {}"),
     ;
 
     fun print(stackTrace: StackTraceElement): String {

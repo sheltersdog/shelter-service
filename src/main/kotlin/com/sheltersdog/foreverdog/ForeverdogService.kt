@@ -2,6 +2,8 @@ package com.sheltersdog.foreverdog
 
 import com.sheltersdog.core.event.EventBus
 import com.sheltersdog.core.exception.SheltersdogException
+import com.sheltersdog.core.log.LogMessage
+import com.sheltersdog.core.log.loggingAndException
 import com.sheltersdog.core.util.yyyyMMddToLocalDate
 import com.sheltersdog.foreverdog.dto.request.GetForeverdogsRequest
 import com.sheltersdog.foreverdog.dto.request.PostForeverdogRequest
@@ -48,8 +50,10 @@ class ForeverdogService @Autowired constructor(
         )
 
         if (!hasAuthority) {
-            log.debug("postForeverdog fail :: 권한이 없는 사용자가 등록을 요청하였습니다. userId: $userId")
-            throw SheltersdogException("권한이 없습니다.")
+            throw LogMessage.ACCESS_DENIED.loggingAndException(
+                staceTraceElement = Thread.currentThread().stackTrace[1],
+                variables = mapOf("userId" to userId)
+            )
         }
 
         val entity = Foreverdog(
@@ -103,8 +107,10 @@ class ForeverdogService @Autowired constructor(
 
         if (!hasAuthority) {
             val userId = (ReactiveSecurityContextHolder.getContext().awaitSingle().authentication.principal as User).username
-            log.debug("putForeverdogStatus :: 권한이 없는 사용자가 강이자 상태 변경을 시도하였습니다. foreverdogId: $foreverdogId, userId: $userId")
-            throw SheltersdogException("권한이 없습니다.")
+            throw LogMessage.ACCESS_DENIED.loggingAndException(
+                staceTraceElement = Thread.currentThread().stackTrace[1],
+                variables = mapOf("userId" to userId, "foreverdogId" to foreverdogId)
+            )
         }
 
         val result = foreverdogRepository.updateById(

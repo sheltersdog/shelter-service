@@ -15,7 +15,7 @@ enum class ExceptionMessage(val description: String) {
     NOT_FOUND_SHELTER("보호소나 쉼터를 찾을 수 없습니다."),
 
     VALID_CHECK_WRONG("값이 존재하지 않거나 올바르지 않습니다."),
-
+    ACCESS_DENIED("접근 권한이 없습니다."),
     ;
 
 }
