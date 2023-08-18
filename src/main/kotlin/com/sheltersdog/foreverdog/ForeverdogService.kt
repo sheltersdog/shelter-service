@@ -10,6 +10,7 @@ import com.sheltersdog.foreverdog.entity.Foreverdog
 import com.sheltersdog.foreverdog.entity.model.ForeverdogStatus
 import com.sheltersdog.foreverdog.mapper.foreverdogToDto
 import com.sheltersdog.foreverdog.repository.ForeverdogRepository
+import com.sheltersdog.shelter.entity.ifNullThrow
 import com.sheltersdog.shelter.entity.model.ShelterAuthority
 import com.sheltersdog.shelter.event.SaveForeverdogEvent
 import com.sheltersdog.shelter.repository.ShelterRepository
@@ -33,12 +34,13 @@ class ForeverdogService @Autowired constructor(
     suspend fun postForeverdog(requestBody: PostForeverdogRequest): ForeverdogDto {
         val userId =
             (ReactiveSecurityContextHolder.getContext().awaitSingle().authentication.principal as User).username
-        val shelter = shelterRepository.findById(requestBody.shelterId)
+        val shelter = shelterRepository.findById(requestBody.shelterId).ifNullThrow(
+            variables = mapOf(
+                "shelterId" to requestBody.shelterId,
+                "userId" to userId,
+            )
+        )
 
-        if (shelter == null) {
-            log.debug("shelterId: ${requestBody.shelterId} 조회에 실패하였습니다. \nrequestBody: $requestBody \n userId: $userId")
-            throw SheltersdogException("존재하지 않는 보호소입니다.")
-        }
         val hasAuthority = hasAuthority(
             shelterAdmins = shelter.sheltersAdmins,
             userId = userId,

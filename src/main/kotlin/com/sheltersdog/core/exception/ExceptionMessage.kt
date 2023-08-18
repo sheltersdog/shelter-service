@@ -1,7 +1,7 @@
 package com.sheltersdog.core.exception
 
 enum class ExceptionMessage(val description: String) {
-    SHELTERSDOG_EXCEPTION("서버 에러가 발생하였습니다."),
+    SHELTERSDOG_EXCEPTION("에러가 발생하였습니다."),
 
     NOT_EXIST_TOKEN("인증 토큰이 존재하지 않습니다."),
     WRONG_PATH("잘못된 경로로 요청하였습니다."),
