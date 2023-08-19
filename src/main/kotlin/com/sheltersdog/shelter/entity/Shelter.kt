@@ -1,8 +1,6 @@
 package com.sheltersdog.shelter.entity
 
 import com.sheltersdog.address.entity.Address
-import com.sheltersdog.core.exception.SheltersdogException
-import com.sheltersdog.core.log.LogMessage
 import com.sheltersdog.shelter.entity.model.ShelterStatus
 import org.bson.types.ObjectId
 import org.springframework.data.annotation.Id
@@ -49,15 +47,3 @@ data class Shelter(
 
     val searchKeyword: String,
 )
-
-fun Shelter?.ifNullThrow(
-    variables: Map<String, Any?>,
-): Shelter {
-    if (this != null) return this
-
-    throw SheltersdogException(
-        logMessage = LogMessage.NOT_FOUND_SHELTER,
-        variables = variables,
-    )
-}
-

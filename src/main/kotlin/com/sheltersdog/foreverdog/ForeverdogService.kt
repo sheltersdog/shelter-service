@@ -1,19 +1,17 @@
 package com.sheltersdog.foreverdog
 
 import com.sheltersdog.core.event.EventBus
+import com.sheltersdog.core.exception.ExceptionType
 import com.sheltersdog.core.exception.SheltersdogException
-import com.sheltersdog.core.log.LogMessage
 import com.sheltersdog.core.util.updateCheck
 import com.sheltersdog.core.util.yyyyMMddToLocalDate
 import com.sheltersdog.foreverdog.dto.request.GetForeverdogsRequest
 import com.sheltersdog.foreverdog.dto.request.PostForeverdogRequest
 import com.sheltersdog.foreverdog.dto.response.ForeverdogDto
 import com.sheltersdog.foreverdog.entity.Foreverdog
-import com.sheltersdog.foreverdog.entity.ifNullThrow
 import com.sheltersdog.foreverdog.entity.model.ForeverdogStatus
 import com.sheltersdog.foreverdog.mapper.foreverdogToDto
 import com.sheltersdog.foreverdog.repository.ForeverdogRepository
-import com.sheltersdog.shelter.entity.ifNullThrow
 import com.sheltersdog.shelter.entity.model.ShelterAuthority
 import com.sheltersdog.shelter.event.SaveForeverdogEvent
 import com.sheltersdog.shelter.repository.ShelterRepository
@@ -37,12 +35,14 @@ class ForeverdogService @Autowired constructor(
     suspend fun postForeverdog(requestBody: PostForeverdogRequest): ForeverdogDto {
         val userId =
             (ReactiveSecurityContextHolder.getContext().awaitSingle().authentication.principal as User).username
-        val shelter = shelterRepository.findById(requestBody.shelterId).ifNullThrow(
-            variables = mapOf(
-                "shelterId" to requestBody.shelterId,
-                "userId" to userId,
+        val shelter = shelterRepository.findById(requestBody.shelterId)
+            ?: throw SheltersdogException(
+                exceptionType = ExceptionType.NOT_FOUND_SHELTER,
+                variables = mapOf(
+                    "shelterId" to requestBody.shelterId,
+                    "userId" to userId,
+                )
             )
-        )
 
         val hasAuthority = hasAuthority(
             shelterAdmins = shelter.sheltersAdmins,
@@ -52,7 +52,7 @@ class ForeverdogService @Autowired constructor(
 
         if (!hasAuthority) {
             throw SheltersdogException(
-                logMessage = LogMessage.ACCESS_DENIED,
+                exceptionType = ExceptionType.ACCESS_DENIED,
                 variables = mapOf(
                     "userId" to userId,
                     "shelterId" to requestBody.shelterId,
@@ -98,7 +98,8 @@ class ForeverdogService @Autowired constructor(
 
     suspend fun putForeverdogStatus(foreverdogId: String, status: ForeverdogStatus): ForeverdogDto {
         val entity = foreverdogRepository.findById(foreverdogId)
-            .ifNullThrow(
+            ?: throw SheltersdogException(
+                exceptionType = ExceptionType.NOT_FOUND_FOREVERDOG,
                 variables = mapOf(
                     "foreverdogId" to foreverdogId
                 )
@@ -115,7 +116,7 @@ class ForeverdogService @Autowired constructor(
             val userId =
                 (ReactiveSecurityContextHolder.getContext().awaitSingle().authentication.principal as User).username
             throw SheltersdogException(
-                logMessage = LogMessage.ACCESS_DENIED,
+                exceptionType = ExceptionType.ACCESS_DENIED,
                 variables = mapOf(
                     "userId" to userId, "foreverdogId" to foreverdogId,
                     "ShelterAuthority" to ShelterAuthority.DOG_MANAGE,

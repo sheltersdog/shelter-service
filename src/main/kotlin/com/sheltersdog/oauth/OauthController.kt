@@ -1,7 +1,7 @@
 package com.sheltersdog.oauth
 
+import com.sheltersdog.core.exception.ExceptionType
 import com.sheltersdog.core.exception.SheltersdogException
-import com.sheltersdog.core.log.LogMessage
 import com.sheltersdog.core.properties.KakaoProperties
 import com.sheltersdog.oauth.dto.KakaoUserInfoDto
 import org.springframework.beans.factory.annotation.Autowired
@@ -27,7 +27,7 @@ class OauthController @Autowired constructor(
     ) {
         if (authorization.isBlank() || authorization != "KakaoAK ${kakaoProperties.adminKey}") {
             throw SheltersdogException(
-                logMessage = LogMessage.KAKAO_LEAVE_MESSAGE,
+                exceptionType = ExceptionType.KAKAO_LEAVE_MESSAGE,
                 variables = mapOf(
                     "authorization" to authorization,
                     "user_id" to id,

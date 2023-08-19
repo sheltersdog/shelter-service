@@ -1,7 +1,7 @@
 package com.sheltersdog.image
 
+import com.sheltersdog.core.exception.ExceptionType
 import com.sheltersdog.core.exception.SheltersdogException
-import com.sheltersdog.core.log.LogMessage
 import com.sheltersdog.core.model.FileType
 import com.sheltersdog.core.util.fileTypeCheck
 import kotlinx.coroutines.flow.Flow
@@ -24,7 +24,7 @@ class ImageController @Autowired constructor(
     ): String {
         if (!fileTypeCheck(FileType.IMAGE, requestPart)) {
             throw SheltersdogException(
-                logMessage = LogMessage.FILE_TYPE_WRONG,
+                exceptionType = ExceptionType.FILE_TYPE_WRONG,
                 variables = mapOf(
                     "filename" to requestPart.filename(),
                     "EnableType" to "JPG, JPEG, PNG",
@@ -39,7 +39,7 @@ class ImageController @Autowired constructor(
         return requestParts.map { file ->
             if (!fileTypeCheck(FileType.IMAGE, file)) {
                 throw SheltersdogException(
-                    logMessage = LogMessage.FILE_TYPE_WRONG,
+                    exceptionType = ExceptionType.FILE_TYPE_WRONG,
                     variables = mapOf(
                         "filename" to file.filename(),
                         "EnableType" to "JPG, JPEG, PNG",

@@ -1,7 +1,5 @@
 package com.sheltersdog.core.log
 
-import com.sheltersdog.core.exception.ExceptionMessage
-
 enum class LogMessage(private val description: String) {
     NOT_FOUND_ADDRESS("존재하지 않는 Address 데이터입니다. {}"),
 
@@ -38,10 +36,4 @@ enum class LogMessage(private val description: String) {
 
         return "\n\t\t${stackTraces.joinToString("\n\t\t") { trace -> "$trace" }} :: ${this.description}"
     }
-}
-
-fun LogMessage.exceptionMessage(): ExceptionMessage {
-    return ExceptionMessage.values().firstOrNull { exceptionMessage ->
-        exceptionMessage.name == this.name
-    } ?: ExceptionMessage.SHELTERSDOG_EXCEPTION
 }

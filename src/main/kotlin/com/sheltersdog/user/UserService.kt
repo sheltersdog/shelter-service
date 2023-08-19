@@ -1,14 +1,13 @@
 package com.sheltersdog.user
 
 import com.sheltersdog.core.dto.JwtDto
+import com.sheltersdog.core.exception.ExceptionType
 import com.sheltersdog.core.exception.SheltersdogException
-import com.sheltersdog.core.log.LogMessage
 import com.sheltersdog.core.model.SocialType
 import com.sheltersdog.core.security.jwt.JwtProvider
 import com.sheltersdog.user.dto.request.UserJoinRequest
 import com.sheltersdog.user.dto.request.UserLoginRequest
 import com.sheltersdog.user.entity.User
-import com.sheltersdog.user.entity.ifNullThrow
 import com.sheltersdog.user.entity.model.UserStatus
 import com.sheltersdog.user.repository.UserRepository
 import org.slf4j.Logger
@@ -32,7 +31,7 @@ class UserService @Autowired constructor(
         val isExist = userRepository.isExistUser(requestBody.oauthId, requestBody.email, UserStatus.ACTIVE)
         if (isExist) {
             throw SheltersdogException(
-                logMessage = LogMessage.ALREADY_JOIN_USER,
+                exceptionType = ExceptionType.ALREADY_JOIN_USER,
                 variables = mapOf("requestBody" to requestBody)
             )
         }
@@ -63,7 +62,10 @@ class UserService @Autowired constructor(
         val user = userRepository.findByOauthIdAndSocialType(
             kakaoOauthId = requestBody.oauthId,
             socialType = requestBody.socialType,
-        ).ifNullThrow(mapOf("requestBody" to requestBody))
+        ) ?: throw SheltersdogException(
+            exceptionType = ExceptionType.NOT_FOUND_USER,
+            variables = mapOf("requestBody" to requestBody)
+        )
 
         return jwtProvider.generateToken(id = user.id.toString())
     }

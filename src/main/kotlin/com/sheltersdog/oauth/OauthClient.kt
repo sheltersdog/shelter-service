@@ -1,7 +1,7 @@
 package com.sheltersdog.oauth
 
+import com.sheltersdog.core.exception.ExceptionType
 import com.sheltersdog.core.exception.SheltersdogException
-import com.sheltersdog.core.log.LogMessage
 import com.sheltersdog.core.model.AUTHORIZATION
 import com.sheltersdog.core.properties.KakaoProperties
 import com.sheltersdog.oauth.dto.KakaoOauthTokenDto
@@ -49,7 +49,7 @@ class OauthClient @Autowired constructor(
                 }
 
                 throw SheltersdogException(
-                    logMessage = LogMessage.NOT_FOUND_KAKAO_TOKEN,
+                    exceptionType = ExceptionType.NOT_FOUND_KAKAO_TOKEN,
                     variables = mapOf(
                         "statusCode" to response.statusCode(),
                         "body" to response.awaitBody(),
@@ -77,7 +77,7 @@ class OauthClient @Autowired constructor(
                 }
 
                 throw SheltersdogException(
-                    logMessage = LogMessage.NOT_FOUND_KAKAO_USER_INFO,
+                    exceptionType = ExceptionType.NOT_FOUND_KAKAO_USER_INFO,
                     variables = mapOf(
                         "accessToken" to accessToken,
                         "statusCode" to response.statusCode(),

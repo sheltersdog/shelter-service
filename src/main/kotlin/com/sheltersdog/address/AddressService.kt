@@ -2,12 +2,12 @@ package com.sheltersdog.address
 
 import com.sheltersdog.address.dto.AddressDto
 import com.sheltersdog.address.dto.KakaoDocument
-import com.sheltersdog.address.dto.ifNullThrow
-import com.sheltersdog.address.entity.ifNullThrow
 import com.sheltersdog.address.model.AddressType
 import com.sheltersdog.address.model.getPropertyCode
 import com.sheltersdog.address.model.getPropertyName
 import com.sheltersdog.address.repository.AddressRepository
+import com.sheltersdog.core.exception.ExceptionType
+import com.sheltersdog.core.exception.SheltersdogException
 import com.sheltersdog.core.properties.KakaoProperties
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import org.springframework.beans.factory.annotation.Autowired
@@ -110,7 +110,10 @@ class AddressService @Autowired constructor(
             .accept(MediaType.APPLICATION_JSON)
             .exchangeToMono { it.bodyToMono(KakaoDocument::class.java) }
             .awaitFirstOrNull()
-            .ifNullThrow(variables = mapOf("url" to uri))
+            ?: throw SheltersdogException(
+                exceptionType = ExceptionType.NOT_FOUND_KAKAO_DOCUMENT,
+                variables = mapOf("url" to uri)
+            )
     }
 
     suspend fun getAddresses(
@@ -120,7 +123,8 @@ class AddressService @Autowired constructor(
     ): AddressDto {
         val address = addressRepository.getAddresses(
             type, parentCode, keyword
-        ).ifNullThrow(
+        ) ?: throw SheltersdogException(
+            exceptionType = ExceptionType.NOT_FOUND_ADDRESS,
             variables = mapOf(
                 "type" to type,
                 "parentCode" to parentCode,

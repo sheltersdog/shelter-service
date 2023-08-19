@@ -1,13 +1,12 @@
 package com.sheltersdog.volunteer
 
 import com.sheltersdog.core.event.EventBus
+import com.sheltersdog.core.exception.ExceptionType
 import com.sheltersdog.core.exception.SheltersdogException
-import com.sheltersdog.core.log.LogMessage
 import com.sheltersdog.core.model.SheltersdogStatus
 import com.sheltersdog.core.util.updateCheck
 import com.sheltersdog.core.util.yyyyMMddToLocalDate
 import com.sheltersdog.shelter.entity.Shelter
-import com.sheltersdog.shelter.entity.ifNullThrow
 import com.sheltersdog.shelter.entity.model.ShelterAuthority
 import com.sheltersdog.shelter.event.SaveVolunteerEvent
 import com.sheltersdog.shelter.repository.ShelterRepository
@@ -18,7 +17,6 @@ import com.sheltersdog.volunteer.dto.request.PostVolunteer
 import com.sheltersdog.volunteer.dto.request.PutVolunteer
 import com.sheltersdog.volunteer.dto.response.VolunteerDto
 import com.sheltersdog.volunteer.entity.Volunteer
-import com.sheltersdog.volunteer.entity.ifNullThrow
 import com.sheltersdog.volunteer.entity.model.SourceType
 import com.sheltersdog.volunteer.mapper.volunteerToDto
 import com.sheltersdog.volunteer.repository.VolunteerRepository
@@ -74,7 +72,10 @@ class VolunteerService @Autowired constructor(
 
     suspend fun putVolunteer(requestBody: PutVolunteer): VolunteerDto? {
         val volunteer = volunteerRepository.findById(requestBody.id)
-            .ifNullThrow(variables = mapOf("requestBody" to requestBody))
+            ?: throw SheltersdogException(
+                exceptionType = ExceptionType.VOLUNTEER_NOT_FOUND,
+                variables = mapOf("requestBody" to requestBody)
+            )
 
         volunteer.shelterId?.let { shelterId ->
             val shelter = shelterRepository.findById(shelterId)
@@ -94,7 +95,7 @@ class VolunteerService @Autowired constructor(
                 )
             ) {
                 throw SheltersdogException(
-                    logMessage = LogMessage.ACCESS_DENIED,
+                    exceptionType = ExceptionType.ACCESS_DENIED,
                     variables = mapOf(
                         "userId" to userId,
                         "shelterId" to shelterId,
@@ -156,7 +157,7 @@ class VolunteerService @Autowired constructor(
                 )
             ) {
                 throw SheltersdogException(
-                    logMessage = LogMessage.ACCESS_DENIED,
+                    exceptionType = ExceptionType.ACCESS_DENIED,
                     variables = mapOf(
                         "userId" to userId,
                         "shelterId" to shelter.id,
@@ -215,7 +216,10 @@ class VolunteerService @Autowired constructor(
 
     suspend fun putAllVolunteerStatusByShelterId(shelterId: String) {
         val shelter = shelterRepository.findById(shelterId)
-            .ifNullThrow(mapOf("shelterId" to shelterId))
+            ?: throw SheltersdogException(
+                exceptionType = ExceptionType.NOT_FOUND_SHELTER,
+                variables = mapOf("shelterId" to shelterId)
+            )
 
         val userId =
             (ReactiveSecurityContextHolder.getContext().awaitSingle().authentication.principal as User).username
@@ -227,7 +231,7 @@ class VolunteerService @Autowired constructor(
             )
         ) {
             throw SheltersdogException(
-                logMessage = LogMessage.ACCESS_DENIED,
+                exceptionType = ExceptionType.ACCESS_DENIED,
                 variables = mapOf(
                     "userId" to userId,
                     "shelterId" to shelter.id,

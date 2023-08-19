@@ -1,26 +1,23 @@
 package com.sheltersdog.core.exception
 
-import com.sheltersdog.core.log.LogMessage
-import com.sheltersdog.core.log.exceptionMessage
 import org.springframework.http.HttpStatus
 
 class SheltersdogException(
-    override val message: String,
     val httpStatus: HttpStatus = HttpStatus.BAD_REQUEST,
     val variables: Map<String, Any?>? = null,
-    val logMessage: LogMessage,
+    val exceptionType: ExceptionType,
     val stackTraces: List<StackTraceElement>,
+    override val message: String = exceptionType.exceptionMessage().description,
 ) : RuntimeException() {
     constructor(
-        logMessage: LogMessage,
+        exceptionType: ExceptionType,
         variables: Map<String, Any?> = mapOf(),
         httpStatus: HttpStatus = HttpStatus.BAD_REQUEST,
     ) : this(
-        message = logMessage.exceptionMessage().description,
-        logMessage = logMessage,
+        message = exceptionType.exceptionMessage().description,
+        exceptionType = exceptionType,
         httpStatus = httpStatus,
         variables = variables,
         stackTraces = Thread.currentThread().stackTrace.toList(),
     )
-
 }

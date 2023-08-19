@@ -1,11 +1,12 @@
 package com.sheltersdog.shelter
 
 import com.sheltersdog.address.repository.AddressRepository
+import com.sheltersdog.core.exception.ExceptionType
+import com.sheltersdog.core.exception.SheltersdogException
 import com.sheltersdog.shelter.dto.request.PostShelterRequest
 import com.sheltersdog.shelter.dto.response.ShelterDto
 import com.sheltersdog.shelter.entity.Shelter
 import com.sheltersdog.shelter.entity.ShelterJoinUser
-import com.sheltersdog.shelter.entity.ifNullThrow
 import com.sheltersdog.shelter.entity.model.ShelterAuthority
 import com.sheltersdog.shelter.mapper.shelterToDto
 import com.sheltersdog.shelter.repository.ShelterRepository
@@ -29,9 +30,12 @@ class ShelterService @Autowired constructor(
     val log: Logger = LoggerFactory.getLogger(this::class.java)
 
     suspend fun postShelter(requestBody: PostShelterRequest): ShelterDto {
-        val userId = (ReactiveSecurityContextHolder.getContext().awaitSingle().authentication.principal as User).username
+        val userId =
+            (ReactiveSecurityContextHolder.getContext().awaitSingle().authentication.principal as User).username
         val user = userRepository.findById(userId)
-            .ifNullOrNotActiveThrow(mapOf("userId" to userId))
+            .ifNullOrNotActiveThrow(
+                variables = mapOf("userId" to userId)
+            )
 
         val address = addressRepository.getAddressByRegionCode(requestBody.regionCode)
         val shelter = Shelter(
@@ -69,9 +73,11 @@ class ShelterService @Autowired constructor(
     }
 
     suspend fun getShelter(id: String): ShelterDto {
-        val shelter = shelterRepository.findById(id).ifNullThrow(
-            variables = mapOf("shelterId" to id)
-        )
+        val shelter = shelterRepository.findById(id)
+            ?: throw SheltersdogException(
+                exceptionType = ExceptionType.NOT_FOUND_SHELTER,
+                variables = mapOf("shelterId" to id)
+            )
         return shelterToDto(shelter, isIncludeAddress = true)
     }
 

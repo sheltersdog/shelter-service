@@ -1,8 +1,6 @@
 package com.sheltersdog.address.entity
 
 import com.sheltersdog.address.model.AddressType
-import com.sheltersdog.core.exception.SheltersdogException
-import com.sheltersdog.core.log.LogMessage
 import org.bson.types.ObjectId
 import org.springframework.data.annotation.Id
 import org.springframework.data.mongodb.core.index.Indexed
@@ -31,14 +29,3 @@ data class Address(
     val createdDate: LocalDate? = null,
     val deletedDate: LocalDate? = null,
 )
-
-fun Address?.ifNullThrow(
-    variables: Map<String, Any?>,
-): Address {
-    if (this != null) return this
-
-    throw SheltersdogException(
-        logMessage = LogMessage.NOT_FOUND_ADDRESS,
-        variables = variables,
-    )
-}

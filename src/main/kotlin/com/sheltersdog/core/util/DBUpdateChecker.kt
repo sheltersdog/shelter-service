@@ -1,8 +1,8 @@
 package com.sheltersdog.core.util
 
 import com.mongodb.client.result.UpdateResult
+import com.sheltersdog.core.exception.ExceptionType
 import com.sheltersdog.core.exception.SheltersdogException
-import com.sheltersdog.core.log.LogMessage
 
 fun UpdateResult.updateCheck(
     variables: Map<String, Any?>,
@@ -14,7 +14,7 @@ fun UpdateResult.updateCheck(
     copyVariables["TableName"] = tableName
     val va = variables
     throw SheltersdogException(
-        logMessage = LogMessage.DB_UPDATE_FAIL,
+        exceptionType = ExceptionType.DB_UPDATE_FAIL,
         variables = copyVariables,
     )
 

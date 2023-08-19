@@ -1,8 +1,6 @@
 package com.sheltersdog.volunteer.entity
 
 import com.sheltersdog.address.entity.Address
-import com.sheltersdog.core.exception.SheltersdogException
-import com.sheltersdog.core.log.LogMessage
 import com.sheltersdog.core.model.SheltersdogStatus
 import com.sheltersdog.shelter.entity.Shelter
 import com.sheltersdog.volunteer.entity.model.SourceType
@@ -50,11 +48,3 @@ data class Volunteer (
 
     val searchKeyword: String,
 )
-
-fun Volunteer?.ifNullThrow(variables: Map<String, Any?>): Volunteer {
-    if (this != null) return this
-    throw SheltersdogException(
-        logMessage = LogMessage.VOLUNTEER_NOT_FOUND,
-        variables = variables,
-    )
-}
