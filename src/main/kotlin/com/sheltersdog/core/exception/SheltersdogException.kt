@@ -6,7 +6,6 @@ class SheltersdogException(
     val httpStatus: HttpStatus = HttpStatus.BAD_REQUEST,
     val variables: Map<String, Any?>? = null,
     val exceptionType: ExceptionType,
-    val stackTraces: List<StackTraceElement>,
     override val message: String = exceptionType.exceptionMessage().description,
 ) : RuntimeException() {
     constructor(
@@ -18,6 +17,5 @@ class SheltersdogException(
         exceptionType = exceptionType,
         httpStatus = httpStatus,
         variables = variables,
-        stackTraces = Thread.currentThread().stackTrace.toList(),
     )
 }

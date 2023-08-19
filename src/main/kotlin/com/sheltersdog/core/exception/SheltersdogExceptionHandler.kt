@@ -47,12 +47,9 @@ class SheltersdogExceptionHandler @Autowired constructor(
         e: SheltersdogException,
     ): ResponseEntity<Any> {
         val logMessage = e.exceptionType.logMessage()
+        val errorStackTrace = getPrintStackTrace(e)
 
-        log.error(
-            logMessage.print(
-                stackTrace = e.stackTraces
-            ), e.variables
-        )
+        log.error(logMessage.description, e.variables, errorStackTrace)
         return ResponseEntity.status(e.httpStatus).body(e.message)
     }
 
