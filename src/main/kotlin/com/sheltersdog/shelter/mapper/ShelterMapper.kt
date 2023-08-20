@@ -5,58 +5,57 @@ import com.sheltersdog.address.mapper.addressToDto
 import com.sheltersdog.shelter.dto.response.ShelterDto
 import com.sheltersdog.shelter.entity.Shelter
 
-fun shelterToDto(
-    entity: Shelter,
+fun Shelter.toDto(
     isIncludeAddress: Boolean = false,
     isIncludeSheltersAdmin: Boolean = false,
 ): ShelterDto {
     val address: AddressDto? =
-        if (isIncludeAddress && entity.address != null) addressToDto(entity.address)
+        if (isIncludeAddress && this.address != null) addressToDto(this.address)
         else null
 
     val detailAddress =
-        if (entity.isPrivateDetailAddress) null
-        else entity.detailAddress
+        if (this.isPrivateDetailAddress) null
+        else this.detailAddress
 
     val sheltersAdmins =
-        if (isIncludeSheltersAdmin && entity.sheltersAdmins.isNotEmpty()) {
-            entity.sheltersAdmins.map { shelterJoinUser ->
+        if (isIncludeSheltersAdmin && this.sheltersAdmins.isNotEmpty()) {
+            this.sheltersAdmins.map { shelterJoinUser ->
                 shelterJoinUserToDto(shelterJoinUser)
             }
         } else listOf()
 
     return ShelterDto(
-        id = entity.id.toString(),
-        name = entity.name,
-        profileImageUrl = entity.profileImageUrl,
-        contactNumber = entity.contactNumber,
-        isPrivateContact = entity.isPrivateContact,
+        id = this.id.toString(),
+        name = this.name,
+        profileImageUrl = this.profileImageUrl,
+        contactNumber = this.contactNumber,
+        isPrivateContact = this.isPrivateContact,
         address = address,
         detailAddress = detailAddress,
-        x = entity.x,
-        y = entity.y,
-        isPrivateDetailAddress = entity.isPrivateDetailAddress,
+        x = this.x,
+        y = this.y,
+        isPrivateDetailAddress = this.isPrivateDetailAddress,
 
-        shelterSns = entity.shelterSns,
-        representativeSns = entity.representativeSns,
+        shelterSns = this.shelterSns,
+        representativeSns = this.representativeSns,
 
-        donationPath = entity.donationPath,
-        donationUsageHistoryLink = entity.donationUsageHistoryLink,
+        donationPath = this.donationPath,
+        donationUsageHistoryLink = this.donationUsageHistoryLink,
 
-        status = entity.status,
+        status = this.status,
 
-        volunteerTotalCount = entity.volunteerTotalCount,
-        volunteerActiveCount = entity.volunteerActiveCount,
-        volunteerInactiveCount = entity.volunteerInactiveCount,
-        foreverdogCount = entity.foreverdogCount,
-        sheltersAdminCount = entity.sheltersAdminCount,
+        volunteerTotalCount = this.volunteerTotalCount,
+        volunteerActiveCount = this.volunteerActiveCount,
+        volunteerInactiveCount = this.volunteerInactiveCount,
+        foreverdogCount = this.foreverdogCount,
+        sheltersAdminCount = this.sheltersAdminCount,
 
-        isVolunteerRecruiting = entity.isVolunteerRecruiting,
-        isDonationPossible = entity.isDonationPossible,
+        isVolunteerRecruiting = this.isVolunteerRecruiting,
+        isDonationPossible = this.isDonationPossible,
 
         sheltersAdmins = sheltersAdmins,
 
-        createdDate = entity.createdDate,
-        modifyDate = entity.modifyDate,
+        createdDate = this.createdDate,
+        modifyDate = this.modifyDate,
     )
 }

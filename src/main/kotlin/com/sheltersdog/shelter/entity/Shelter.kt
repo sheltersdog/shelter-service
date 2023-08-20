@@ -17,6 +17,7 @@ data class Shelter(
     val contactNumber: String? = null,
     val isPrivateContact: Boolean = true,
 
+    val regionCode: Long,
     val address: Address? = null,
     val detailAddress: String,
     val x: Double? = null,

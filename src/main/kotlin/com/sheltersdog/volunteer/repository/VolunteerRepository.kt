@@ -3,6 +3,7 @@ package com.sheltersdog.volunteer.repository
 import com.mongodb.client.result.UpdateResult
 import com.sheltersdog.address.entity.Address
 import com.sheltersdog.core.database.updateQuery
+import com.sheltersdog.core.database.whereRegionCode
 import com.sheltersdog.core.model.SheltersdogStatus
 import com.sheltersdog.core.util.yyyyMMddToLocalDate
 import com.sheltersdog.volunteer.entity.Volunteer
@@ -81,7 +82,10 @@ class VolunteerRepository @Autowired constructor(
         )
 
         betweenStartDateAndDateDateQuery(date, query)
-        whereRegionCodeQuery(regionCode, query)
+        query.whereRegionCode(
+            regionCode = regionCode,
+            key = Volunteer::regionCode,
+        )
 
         val entities = reactiveMongoTemplate.find(
             query.addCriteria(
@@ -123,30 +127,5 @@ class VolunteerRepository @Autowired constructor(
                     .and(Volunteer::endDate).gte(date)
             )
         )
-    }
-
-    private fun whereRegionCodeQuery(regionCode: Long, query: Query) {
-        if (regionCode == 0L) return
-
-        val sidoCode = (regionCode / 1000_000_00) * 1000_000_00
-        val sggCode = (regionCode / 1000_00) * 1000_00
-        val umdCode = (regionCode / 100) * 100
-
-        if (umdCode != sggCode) {
-            query.addCriteria(
-                where(Volunteer::regionCode)
-                    .gte(umdCode).lt(umdCode + 100)
-            )
-        } else if (sggCode != sidoCode) {
-            query.addCriteria(
-                where(Volunteer::regionCode)
-                    .gte(sggCode).lt(sggCode + 1000_00)
-            )
-        } else {
-            query.addCriteria(
-                where(Volunteer::regionCode)
-                    .gte(sidoCode).lt(sidoCode + 1000_000_00)
-            )
-        }
     }
 }

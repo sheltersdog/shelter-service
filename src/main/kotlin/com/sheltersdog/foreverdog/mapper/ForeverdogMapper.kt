@@ -4,7 +4,7 @@ import com.sheltersdog.core.util.localDateToKoreanFormat
 import com.sheltersdog.foreverdog.dto.response.ForeverdogDto
 import com.sheltersdog.foreverdog.entity.Foreverdog
 import com.sheltersdog.shelter.dto.response.ShelterDto
-import com.sheltersdog.shelter.mapper.shelterToDto
+import com.sheltersdog.shelter.mapper.toDto
 import java.time.LocalDate
 
 fun foreverdogToDto(
@@ -12,7 +12,7 @@ fun foreverdogToDto(
     isIncludeShelter: Boolean = false,
 ): ForeverdogDto {
     val shelter: ShelterDto? =
-        if (isIncludeShelter && entity.shelter != null) shelterToDto(entity.shelter)
+        if (isIncludeShelter && entity.shelter != null) entity.shelter.toDto()
         else null
 
     return ForeverdogDto(

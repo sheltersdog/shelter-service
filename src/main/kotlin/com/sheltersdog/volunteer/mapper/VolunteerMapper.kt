@@ -4,7 +4,7 @@ import com.sheltersdog.address.dto.AddressDto
 import com.sheltersdog.address.mapper.addressToDto
 import com.sheltersdog.core.util.localDateToKoreanFormat
 import com.sheltersdog.shelter.dto.response.ShelterDto
-import com.sheltersdog.shelter.mapper.shelterToDto
+import com.sheltersdog.shelter.mapper.toDto
 import com.sheltersdog.volunteer.dto.response.VolunteerDto
 import com.sheltersdog.volunteer.entity.Volunteer
 
@@ -18,7 +18,7 @@ fun volunteerToDto(
         else null
 
     val shelter: ShelterDto? =
-        if (isIncludeShelter && entity.shelter != null) shelterToDto(entity.shelter)
+        if (isIncludeShelter && entity.shelter != null) entity.shelter.toDto()
         else null
 
     return VolunteerDto(

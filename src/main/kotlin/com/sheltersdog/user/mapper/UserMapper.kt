@@ -2,7 +2,7 @@ package com.sheltersdog.user.mapper
 
 import com.sheltersdog.core.util.localDateToKoreanFormat
 import com.sheltersdog.shelter.dto.response.ShelterDto
-import com.sheltersdog.shelter.mapper.shelterToDto
+import com.sheltersdog.shelter.mapper.toDto
 import com.sheltersdog.user.dto.response.UserDto
 import com.sheltersdog.user.entity.User
 
@@ -14,7 +14,7 @@ fun userToDto(
         entity.userJoinShelters.filter { userJoinShelter ->
             userJoinShelter.shelter != null
         }.map { userJoinShelter ->
-            shelterToDto(userJoinShelter.shelter!!)
+            userJoinShelter.shelter!!.toDto()
         }.toList()
     } else null
 

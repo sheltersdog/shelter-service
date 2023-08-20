@@ -5,7 +5,8 @@ import com.sheltersdog.shelter.entity.ShelterSns
 import com.sheltersdog.shelter.entity.model.ShelterStatus
 import com.sheltersdog.shelter.entity.model.Sns
 import org.bson.types.ObjectId
-import org.junit.jupiter.api.Assertions.*
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Test
 
 class ShelterMapperTest {
@@ -20,6 +21,7 @@ class ShelterMapperTest {
             isPrivateContact = true,
             address = null,
             detailAddress = "detailAddress",
+            regionCode = 0,
             x = null,
             y = null,
             isPrivateDetailAddress = true,
@@ -39,7 +41,7 @@ class ShelterMapperTest {
             searchKeyword = toString(),
         )
 
-        val dto = shelterToDto(entity)
+        val dto = entity.toDto()
         assertEquals(entity.id.toString(), dto.id)
         assertEquals(entity.name, dto.name)
         assertEquals(entity.profileImageUrl, dto.profileImageUrl)
