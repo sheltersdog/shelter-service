@@ -8,37 +8,36 @@ import com.sheltersdog.shelter.mapper.toDto
 import com.sheltersdog.volunteer.dto.response.VolunteerDto
 import com.sheltersdog.volunteer.entity.Volunteer
 
-fun volunteerToDto(
-    entity: Volunteer,
+fun Volunteer.toDto(
     isIncludeAddress: Boolean = false,
     isIncludeShelter: Boolean = false,
 ): VolunteerDto {
     val address: AddressDto? =
-        if (isIncludeAddress && entity.address != null) addressToDto(entity.address)
+        if (isIncludeAddress && this.address != null) addressToDto(this.address)
         else null
 
     val shelter: ShelterDto? =
-        if (isIncludeShelter && entity.shelter != null) entity.shelter.toDto()
+        if (isIncludeShelter && this.shelter != null) this.shelter.toDto()
         else null
 
     return VolunteerDto(
-        id = entity.id.toString(),
-        sourceType = entity.sourceType,
-        shelterName = entity.shelterName,
-        isShort = entity.isShort,
-        categories = entity.categories,
+        id = this.id.toString(),
+        sourceType = this.sourceType,
+        shelterName = this.shelterName,
+        isShort = this.isShort,
+        categories = this.categories,
         address = address,
-        isAlwaysRecruiting = entity.isAlwaysRecruiting,
-        startDate = entity.startDate?.let { localDateToKoreanFormat(it) },
-        endDate = entity.endDate?.let { localDateToKoreanFormat(it) },
-        exposeStartDate = entity.exposeStartDate?.let { localDateToKoreanFormat(it) },
-        exposeEndDate = entity.exposeEndDate?.let { localDateToKoreanFormat(it) },
-        startTime = entity.startTime,
-        endTime = entity.endTime,
-        content = entity.content,
-        shelterId = entity.shelterId,
+        isAlwaysRecruiting = this.isAlwaysRecruiting,
+        startDate = this.startDate?.let { localDateToKoreanFormat(it) },
+        endDate = this.endDate?.let { localDateToKoreanFormat(it) },
+        exposeStartDate = this.exposeStartDate?.let { localDateToKoreanFormat(it) },
+        exposeEndDate = this.exposeEndDate?.let { localDateToKoreanFormat(it) },
+        startTime = this.startTime,
+        endTime = this.endTime,
+        content = this.content,
+        shelterId = this.shelterId,
         shelter = shelter,
-        days = entity.days,
-        url = entity.url,
+        days = this.days,
+        url = this.url,
     )
 }

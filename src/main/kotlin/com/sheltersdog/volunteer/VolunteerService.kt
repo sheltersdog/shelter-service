@@ -18,7 +18,7 @@ import com.sheltersdog.volunteer.dto.request.PutVolunteer
 import com.sheltersdog.volunteer.dto.response.VolunteerDto
 import com.sheltersdog.volunteer.entity.Volunteer
 import com.sheltersdog.volunteer.entity.model.SourceType
-import com.sheltersdog.volunteer.mapper.volunteerToDto
+import com.sheltersdog.volunteer.mapper.toDto
 import com.sheltersdog.volunteer.repository.VolunteerRepository
 import kotlinx.coroutines.reactive.awaitSingle
 import org.slf4j.Logger
@@ -67,7 +67,7 @@ class VolunteerService @Autowired constructor(
         )
 
         val volunteer = saveVolunteer(shelter, entity)
-        return volunteerToDto(volunteer, true)
+        return volunteer.toDto(isIncludeAddress = true)
     }
 
     suspend fun putVolunteer(requestBody: PutVolunteer): VolunteerDto? {
@@ -137,9 +137,7 @@ class VolunteerService @Autowired constructor(
         )
 
         val updateVolunteer = volunteerRepository.findById(updateResult.upsertedId.toString())
-        return updateVolunteer?.let {
-            volunteerToDto(updateVolunteer, true)
-        }
+        return updateVolunteer?.toDto(isIncludeAddress = true)
     }
 
     private suspend fun saveVolunteer(
@@ -196,10 +194,7 @@ class VolunteerService @Autowired constructor(
             loadAddresses = true,
             statuses = requestBody.statuses.map { status -> SheltersdogStatus.valueOf(status) },
         ).stream().map { volunteer ->
-            volunteerToDto(
-                volunteer,
-                isIncludeAddress = true
-            )
+            volunteer.toDto(isIncludeAddress = true)
         }.toList()
     }
 
