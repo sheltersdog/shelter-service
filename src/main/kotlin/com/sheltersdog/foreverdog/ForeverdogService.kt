@@ -44,10 +44,12 @@ class ForeverdogService @Autowired constructor(
                 )
             )
 
-        val hasAuthority = hasAuthority(
-            shelterAdmins = shelter.sheltersAdmins,
+        val hasAuthority = shelter.sheltersAdmins.hasAuthority(
             userId = userId,
-            shelterAuthorities = listOf(ShelterAuthority.ADMIN, ShelterAuthority.DOG_MANAGE)
+            shelterAuthorities = listOf(
+                ShelterAuthority.ADMIN,
+                ShelterAuthority.DOG_MANAGE
+            )
         )
 
         if (!hasAuthority) {
@@ -105,12 +107,12 @@ class ForeverdogService @Autowired constructor(
                 )
             )
 
-        val hasAuthority = entity.shelter?.sheltersAdmins?.let { shelterAdmins ->
-            hasAuthority(
-                shelterAdmins = shelterAdmins,
-                shelterAuthorities = listOf(ShelterAuthority.ADMIN, ShelterAuthority.DOG_MANAGE)
+        val hasAuthority = entity.shelter?.sheltersAdmins?.hasAuthority(
+            shelterAuthorities = listOf(
+                ShelterAuthority.ADMIN,
+                ShelterAuthority.DOG_MANAGE
             )
-        } ?: false
+        ) ?: false
 
         if (!hasAuthority) {
             val userId =

@@ -88,10 +88,11 @@ class VolunteerService @Autowired constructor(
             val userId =
                 (ReactiveSecurityContextHolder.getContext().awaitSingle().authentication.principal as User).username
             if (
-                !hasAuthority(
-                    shelterAdmins = shelter.sheltersAdmins,
+                !shelter.sheltersAdmins.hasAuthority(
                     userId = userId!!,
-                    shelterAuthorities = listOf(ShelterAuthority.ADMIN, ShelterAuthority.VOLUNTEER_MANAGE)
+                    shelterAuthorities = listOf(
+                        ShelterAuthority.ADMIN, ShelterAuthority.VOLUNTEER_MANAGE
+                    )
                 )
             ) {
                 throw SheltersdogException(
@@ -148,8 +149,7 @@ class VolunteerService @Autowired constructor(
             (ReactiveSecurityContextHolder.getContext().awaitSingle().authentication.principal as User).username
         val volunteer = if (shelter != null) {
             if (
-                !hasAuthority(
-                    shelterAdmins = shelter.sheltersAdmins,
+                !shelter.sheltersAdmins.hasAuthority(
                     userId = userId!!,
                     shelterAuthorities = listOf(ShelterAuthority.ADMIN, ShelterAuthority.VOLUNTEER_MANAGE)
                 )
@@ -219,8 +219,7 @@ class VolunteerService @Autowired constructor(
         val userId =
             (ReactiveSecurityContextHolder.getContext().awaitSingle().authentication.principal as User).username
         if (
-            !hasAuthority(
-                shelterAdmins = shelter.sheltersAdmins,
+            !shelter.sheltersAdmins.hasAuthority(
                 userId = userId!!,
                 shelterAuthorities = listOf(ShelterAuthority.ADMIN, ShelterAuthority.VOLUNTEER_MANAGE)
             )
