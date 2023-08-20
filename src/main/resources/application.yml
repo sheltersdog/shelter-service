@@ -5,6 +5,14 @@ spring:
       username: username
       password: password
       uri: uri
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: username@sheltersdog.com
+    password: password
+    properties:
+      mail.smtp.auth: true
+      mail.smtp.starttls.enable: true
 
 properties:
   gateway:
