@@ -101,7 +101,7 @@ class ShelterService @Autowired constructor(
             isVolunteerRecruiting = requestParam.isVolunteerRecruiting,
             isDonationPossible = requestParam.isDonationPossible,
             loadAddresses = true,
-        ).map(Shelter::toDto)
+        ).map{shelter -> shelter.toDto(isIncludeAddress = true)}
     }
 
 
