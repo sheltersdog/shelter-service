@@ -43,11 +43,10 @@ class JwtFilter @Autowired constructor(
             }
         }
 
-
         val authorizationWrapper = exchange.request.headers[AUTHORIZATION]
-
+        val isRequiredJwt = checkRequiredJwtApi(exchange.request)
         if (authorizationWrapper.isNullOrEmpty()) {
-            if (checkRequiredJwtApi(exchange.request)) {
+            if (isRequiredJwt) {
                 return filterChainError(exchange, ExceptionMessage.WRONG_PATH.description)
             }
 
@@ -56,6 +55,10 @@ class JwtFilter @Autowired constructor(
 
         val jwt = getJwt(authorizationWrapper.first())
         val securityContext = getContext(jwt)
+
+        if (isRequiredJwt && securityContext == null) {
+            return filterChainError(exchange, ExceptionMessage.TOKEN_PARSE_EXCEPTION.description)
+        }
 
         return if (securityContext != null) chain.filter(exchange).contextWrite { securityContext }
         else chain.filter(exchange)
@@ -88,7 +91,11 @@ class JwtFilter @Autowired constructor(
 
     private fun getContext(jwt: String): Context? {
         if (!StringUtils.hasText(jwt)) return null
-        val id: String = jwtProvider.getId(jwt)
+        val id: String = try {
+            jwtProvider.getId(jwt)
+        } catch (e: Exception) {
+            return null
+        }
         val authentication = generateAuthentication(jwt, id)
         return ReactiveSecurityContextHolder.withAuthentication(authentication)
     }
