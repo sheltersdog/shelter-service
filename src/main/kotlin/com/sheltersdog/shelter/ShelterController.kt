@@ -2,6 +2,7 @@ package com.sheltersdog.shelter
 
 import com.sheltersdog.shelter.dto.request.GetShelterListRequest
 import com.sheltersdog.shelter.dto.request.PostShelterRequest
+import com.sheltersdog.shelter.dto.request.PutShelterRequest
 import com.sheltersdog.shelter.dto.response.ShelterDto
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.*
@@ -32,6 +33,13 @@ class ShelterController @Autowired constructor(
         requestParam: GetShelterListRequest,
     ): List<ShelterDto> {
         return shelterService.getShelterList(requestParam)
+    }
+
+    @PutMapping
+    suspend fun putShelter(
+        @RequestBody requestBody: PutShelterRequest
+    ): ShelterDto? {
+        return shelterService.putShelter(requestBody)
     }
 
 
