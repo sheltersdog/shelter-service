@@ -1,6 +1,7 @@
 package com.sheltersdog.shelter
 
 import com.sheltersdog.shelter.dto.request.GetShelterListRequest
+import com.sheltersdog.shelter.dto.request.PostShelterAdminInviteRequest
 import com.sheltersdog.shelter.dto.request.PostShelterRequest
 import com.sheltersdog.shelter.dto.request.PutShelterRequest
 import com.sheltersdog.shelter.dto.response.ShelterDto
@@ -40,6 +41,13 @@ class ShelterController @Autowired constructor(
         @RequestBody requestBody: PutShelterRequest
     ): ShelterDto? {
         return shelterService.putShelter(requestBody)
+    }
+
+    @PostMapping("/admin/invite")
+    suspend fun inviteShelterAdmin(
+        @RequestBody requestBody: PostShelterAdminInviteRequest
+    ) {
+        return shelterService.inviteShelterAdmin(requestBody)
     }
 
 

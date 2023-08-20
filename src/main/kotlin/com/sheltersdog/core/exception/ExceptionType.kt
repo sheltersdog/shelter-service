@@ -26,6 +26,7 @@ enum class ExceptionType {
     NOT_FOUND_USER,
 
     VOLUNTEER_NOT_FOUND,
+    SHELTER_ADMIN_INVITE_FAIL,
 }
 
 fun ExceptionType.logMessage(): LogMessage {

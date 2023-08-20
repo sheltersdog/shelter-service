@@ -31,6 +31,7 @@ enum class ExceptionMessage(val description: String) {
     NOT_FOUND_USER("존재하지 않는 회원입니다."),
 
     VOLUNTEER_NOT_FOUND("존재하지 않는 봉사정보입니다."),
+    SHELTER_ADMIN_INVITE_FAIL("쉼터 관리자 초대에 실패했습니다.")
     ;
 
 }

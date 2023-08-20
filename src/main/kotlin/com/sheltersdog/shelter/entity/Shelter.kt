@@ -41,6 +41,7 @@ data class Shelter(
     val isVolunteerRecruiting: Boolean = false,
     val isDonationPossible: Boolean = false,
 
+    val shelterAdminInvites: List<ShelterAdminInvite> = listOf(),
     val sheltersAdmins: List<ShelterJoinUser> = listOf(),
 
     val createdDate: LocalDate? = null,

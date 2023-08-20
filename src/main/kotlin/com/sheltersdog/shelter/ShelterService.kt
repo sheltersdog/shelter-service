@@ -3,12 +3,16 @@ package com.sheltersdog.shelter
 import com.sheltersdog.address.repository.AddressRepository
 import com.sheltersdog.core.exception.ExceptionType
 import com.sheltersdog.core.exception.SheltersdogException
+import com.sheltersdog.core.mail.SheltersdogMailSender
+import com.sheltersdog.core.mail.SheltersdogMailType
 import com.sheltersdog.core.util.ifUpdateFailThrow
 import com.sheltersdog.shelter.dto.request.GetShelterListRequest
+import com.sheltersdog.shelter.dto.request.PostShelterAdminInviteRequest
 import com.sheltersdog.shelter.dto.request.PostShelterRequest
 import com.sheltersdog.shelter.dto.request.PutShelterRequest
 import com.sheltersdog.shelter.dto.response.ShelterDto
 import com.sheltersdog.shelter.entity.Shelter
+import com.sheltersdog.shelter.entity.ShelterAdminInvite
 import com.sheltersdog.shelter.entity.ShelterJoinUser
 import com.sheltersdog.shelter.entity.model.ShelterAuthority
 import com.sheltersdog.shelter.mapper.toDto
@@ -26,6 +30,7 @@ import org.springframework.security.core.context.ReactiveSecurityContextHolder
 import org.springframework.security.core.userdetails.User
 import org.springframework.stereotype.Service
 import java.time.LocalDate
+import java.time.LocalDateTime
 import kotlin.reflect.KProperty
 
 @Service
@@ -33,6 +38,7 @@ class ShelterService @Autowired constructor(
     val shelterRepository: ShelterRepository,
     val userRepository: UserRepository,
     val addressRepository: AddressRepository,
+    val mailSender: SheltersdogMailSender,
 ) {
     val log: Logger = LoggerFactory.getLogger(this::class.java)
 
@@ -165,6 +171,57 @@ class ShelterService @Autowired constructor(
         ) ?: throw SheltersdogException(
             exceptionType = ExceptionType.NOT_FOUND_SHELTER,
             variables = mapOf("shelterId" to requestBody.id)
+        )
+    }
+
+    suspend fun inviteShelterAdmin(requestBody: PostShelterAdminInviteRequest) {
+        val shelter = shelterRepository.findById(requestBody.shelterId)
+            ?: throw SheltersdogException(
+                exceptionType = ExceptionType.NOT_FOUND_SHELTER,
+                variables = mapOf("shelterId" to requestBody.shelterId)
+            )
+
+        shelter.hasAuthorityOrThrow(
+            shelterAuthorities = listOf(
+                ShelterAuthority.ADMIN, ShelterAuthority.ADMIN_MANAGE
+            )
+        )
+
+        val invites = shelter.shelterAdminInvites
+        invites.firstOrNull { e -> e.email == requestBody.email }?.let {
+            if (LocalDateTime.now().isBefore(it.expiredDate)) return
+        }
+
+        // TODO change inviteUrl
+        val isSuccess = mailSender.sendMail(
+            type = SheltersdogMailType.SHELTER_ADMIN_INVITE,
+            email = requestBody.email,
+            params = mapOf(
+                "{shelterName}" to shelter.name,
+                "{inviteUrl}" to "https://sheltersdog.com"
+            )
+        )
+
+        if (!isSuccess) {
+            throw SheltersdogException(
+                exceptionType = ExceptionType.SHELTER_ADMIN_INVITE_FAIL,
+                variables = mapOf(
+                    "email" to requestBody.email,
+                    "shelterId" to requestBody.shelterId,
+                )
+            )
+        }
+
+        val invite = ShelterAdminInvite(
+            email = requestBody.email,
+            authorities = requestBody.authorities,
+        )
+        val copyInvites = shelter.shelterAdminInvites.toMutableList()
+        copyInvites.add(invite)
+
+        shelterRepository.updateById(
+            id = requestBody.shelterId,
+            updateFields = mapOf(Shelter::shelterAdminInvites to copyInvites)
         )
     }
 
