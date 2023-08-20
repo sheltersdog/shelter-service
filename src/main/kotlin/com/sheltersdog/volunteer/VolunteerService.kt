@@ -4,7 +4,7 @@ import com.sheltersdog.core.event.EventBus
 import com.sheltersdog.core.exception.ExceptionType
 import com.sheltersdog.core.exception.SheltersdogException
 import com.sheltersdog.core.model.SheltersdogStatus
-import com.sheltersdog.core.util.updateCheck
+import com.sheltersdog.core.util.ifUpdateFailThrow
 import com.sheltersdog.core.util.yyyyMMddToLocalDate
 import com.sheltersdog.shelter.entity.Shelter
 import com.sheltersdog.shelter.entity.model.ShelterAuthority
@@ -132,7 +132,7 @@ class VolunteerService @Autowired constructor(
                 Pair(Volunteer::exposeStartDate, exposeStartDate),
                 Pair(Volunteer::exposeEndDate, exposeEndDate),
             )
-        ).updateCheck(
+        ).ifUpdateFailThrow(
             tableName = Volunteer::class.java.name,
             variables = mapOf("requestBody" to requestBody),
         )
@@ -237,7 +237,7 @@ class VolunteerService @Autowired constructor(
         volunteerRepository.updateAllByShelterId(
             shelterId = shelterId,
             updateFields = mapOf(Pair(Volunteer::status, SheltersdogStatus.INACTIVE))
-        ).updateCheck(
+        ).ifUpdateFailThrow(
             tableName = Volunteer::class.java.name,
             variables = mapOf("shelterId" to shelterId)
         )

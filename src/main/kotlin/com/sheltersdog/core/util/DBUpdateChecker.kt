@@ -4,7 +4,7 @@ import com.mongodb.client.result.UpdateResult
 import com.sheltersdog.core.exception.ExceptionType
 import com.sheltersdog.core.exception.SheltersdogException
 
-fun UpdateResult.updateCheck(
+fun UpdateResult.ifUpdateFailThrow(
     variables: Map<String, Any?>,
     tableName: String,
 ): UpdateResult {

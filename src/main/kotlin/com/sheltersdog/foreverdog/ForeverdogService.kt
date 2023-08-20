@@ -3,7 +3,7 @@ package com.sheltersdog.foreverdog
 import com.sheltersdog.core.event.EventBus
 import com.sheltersdog.core.exception.ExceptionType
 import com.sheltersdog.core.exception.SheltersdogException
-import com.sheltersdog.core.util.updateCheck
+import com.sheltersdog.core.util.ifUpdateFailThrow
 import com.sheltersdog.core.util.yyyyMMddToLocalDate
 import com.sheltersdog.foreverdog.dto.request.GetForeverdogsRequest
 import com.sheltersdog.foreverdog.dto.request.PostForeverdogRequest
@@ -131,7 +131,7 @@ class ForeverdogService @Autowired constructor(
             updateFields = mapOf(
                 Pair(Foreverdog::status, status)
             )
-        ).updateCheck(
+        ).ifUpdateFailThrow(
             tableName = Foreverdog::class.java.name,
             variables = mapOf(
                 "foreverdogId" to foreverdogId,

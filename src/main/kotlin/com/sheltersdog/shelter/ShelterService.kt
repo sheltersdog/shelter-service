@@ -3,7 +3,7 @@ package com.sheltersdog.shelter
 import com.sheltersdog.address.repository.AddressRepository
 import com.sheltersdog.core.exception.ExceptionType
 import com.sheltersdog.core.exception.SheltersdogException
-import com.sheltersdog.core.util.updateCheck
+import com.sheltersdog.core.util.ifUpdateFailThrow
 import com.sheltersdog.shelter.dto.request.GetShelterListRequest
 import com.sheltersdog.shelter.dto.request.PostShelterRequest
 import com.sheltersdog.shelter.dto.request.PutShelterRequest
@@ -149,7 +149,7 @@ class ShelterService @Autowired constructor(
         shelterRepository.updateById(
             id = requestBody.id,
             updateFields = updateFields,
-        ).updateCheck(
+        ).ifUpdateFailThrow(
             tableName = Shelter::class.java.name,
             variables = updateFields.mapKeys { (key) -> key.name },
         )
