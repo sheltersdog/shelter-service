@@ -27,7 +27,7 @@ class OauthController @Autowired constructor(
     ) {
         if (authorization.isBlank() || authorization != "KakaoAK ${kakaoProperties.adminKey}") {
             throw SheltersdogException(
-                exceptionType = ExceptionType.KAKAO_LEAVE_MESSAGE,
+                type = ExceptionType.KAKAO_LEAVE,
                 variables = mapOf(
                     "authorization" to authorization,
                     "user_id" to id,

@@ -31,7 +31,7 @@ class UserService @Autowired constructor(
         val isExist = userRepository.isExistUser(requestBody.oauthId, requestBody.email, UserStatus.ACTIVE)
         if (isExist) {
             throw SheltersdogException(
-                exceptionType = ExceptionType.ALREADY_JOIN_USER,
+                type = ExceptionType.ALREADY_JOIN_USER,
                 variables = mapOf("requestBody" to requestBody)
             )
         }
@@ -63,7 +63,7 @@ class UserService @Autowired constructor(
             kakaoOauthId = requestBody.oauthId,
             socialType = requestBody.socialType,
         ) ?: throw SheltersdogException(
-            exceptionType = ExceptionType.NOT_FOUND_USER,
+            type = ExceptionType.NOT_FOUND_USER,
             variables = mapOf("requestBody" to requestBody)
         )
 

@@ -73,7 +73,7 @@ class VolunteerService @Autowired constructor(
     suspend fun putVolunteer(requestBody: PutVolunteer): VolunteerDto? {
         val volunteer = volunteerRepository.findById(requestBody.id)
             ?: throw SheltersdogException(
-                exceptionType = ExceptionType.VOLUNTEER_NOT_FOUND,
+                type = ExceptionType.VOLUNTEER_NOT_FOUND,
                 variables = mapOf("requestBody" to requestBody)
             )
 
@@ -96,7 +96,7 @@ class VolunteerService @Autowired constructor(
                 )
             ) {
                 throw SheltersdogException(
-                    exceptionType = ExceptionType.ACCESS_DENIED,
+                    type = ExceptionType.ACCESS_DENIED,
                     variables = mapOf(
                         "userId" to userId,
                         "shelterId" to shelterId,
@@ -155,7 +155,7 @@ class VolunteerService @Autowired constructor(
                 )
             ) {
                 throw SheltersdogException(
-                    exceptionType = ExceptionType.ACCESS_DENIED,
+                    type = ExceptionType.ACCESS_DENIED,
                     variables = mapOf(
                         "userId" to userId,
                         "shelterId" to shelter.id,
@@ -212,7 +212,7 @@ class VolunteerService @Autowired constructor(
     suspend fun putAllVolunteerStatusByShelterId(shelterId: String) {
         val shelter = shelterRepository.findById(shelterId)
             ?: throw SheltersdogException(
-                exceptionType = ExceptionType.NOT_FOUND_SHELTER,
+                type = ExceptionType.NOT_FOUND_SHELTER,
                 variables = mapOf("shelterId" to shelterId)
             )
 
@@ -225,7 +225,7 @@ class VolunteerService @Autowired constructor(
             )
         ) {
             throw SheltersdogException(
-                exceptionType = ExceptionType.ACCESS_DENIED,
+                type = ExceptionType.ACCESS_DENIED,
                 variables = mapOf(
                     "userId" to userId,
                     "shelterId" to shelter.id,

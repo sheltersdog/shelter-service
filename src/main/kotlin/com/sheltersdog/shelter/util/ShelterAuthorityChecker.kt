@@ -36,7 +36,7 @@ suspend fun List<ShelterJoinUser>.hasAuthorityOrThrow(
         ?: (ReactiveSecurityContextHolder.getContext().awaitSingle().authentication.principal as User).username
 
     throw SheltersdogException(
-        exceptionType = ExceptionType.ACCESS_DENIED,
+        type = ExceptionType.ACCESS_DENIED,
         variables = mapOf(
             "userId" to checkUserId,
             "shelterId" to shelterId,

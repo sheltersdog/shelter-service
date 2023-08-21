@@ -24,7 +24,7 @@ class ImageController @Autowired constructor(
     ): String {
         if (!fileTypeCheck(FileType.IMAGE, requestPart)) {
             throw SheltersdogException(
-                exceptionType = ExceptionType.FILE_TYPE_WRONG,
+                type = ExceptionType.FILE_TYPE_WRONG,
                 variables = mapOf(
                     "filename" to requestPart.filename(),
                     "EnableType" to "JPG, JPEG, PNG",
@@ -39,7 +39,7 @@ class ImageController @Autowired constructor(
         return requestParts.map { file ->
             if (!fileTypeCheck(FileType.IMAGE, file)) {
                 throw SheltersdogException(
-                    exceptionType = ExceptionType.FILE_TYPE_WRONG,
+                    type = ExceptionType.FILE_TYPE_WRONG,
                     variables = mapOf(
                         "filename" to file.filename(),
                         "EnableType" to "JPG, JPEG, PNG",

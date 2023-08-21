@@ -89,7 +89,7 @@ class ShelterService @Autowired constructor(
     suspend fun getShelter(id: String): ShelterDto {
         val shelter = shelterRepository.findById(id)
             ?: throw SheltersdogException(
-                exceptionType = ExceptionType.NOT_FOUND_SHELTER,
+                type = ExceptionType.NOT_FOUND_SHELTER,
                 variables = mapOf("shelterId" to id)
             )
         return shelter.toDto(isIncludeAddress = true)
@@ -120,7 +120,7 @@ class ShelterService @Autowired constructor(
 
         val shelter = shelterRepository.findById(requestBody.id)
             ?: throw SheltersdogException(
-                exceptionType = ExceptionType.NOT_FOUND_SHELTER,
+                type = ExceptionType.NOT_FOUND_SHELTER,
                 variables = mapOf("shelterId" to requestBody.id)
             )
 
@@ -169,7 +169,7 @@ class ShelterService @Autowired constructor(
             isIncludeAddress = true,
             isIncludeSheltersAdmin = true
         ) ?: throw SheltersdogException(
-            exceptionType = ExceptionType.NOT_FOUND_SHELTER,
+            type = ExceptionType.NOT_FOUND_SHELTER,
             variables = mapOf("shelterId" to requestBody.id)
         )
     }
@@ -177,7 +177,7 @@ class ShelterService @Autowired constructor(
     suspend fun inviteShelterAdmin(requestBody: PostShelterAdminInviteRequest) {
         val shelter = shelterRepository.findById(requestBody.shelterId)
             ?: throw SheltersdogException(
-                exceptionType = ExceptionType.NOT_FOUND_SHELTER,
+                type = ExceptionType.NOT_FOUND_SHELTER,
                 variables = mapOf("shelterId" to requestBody.shelterId)
             )
 
@@ -204,7 +204,7 @@ class ShelterService @Autowired constructor(
 
         if (!isSuccess) {
             throw SheltersdogException(
-                exceptionType = ExceptionType.SHELTER_ADMIN_INVITE_FAIL,
+                type = ExceptionType.SHELTER_ADMIN_INVITE_FAIL,
                 variables = mapOf(
                     "email" to requestBody.email,
                     "shelterId" to requestBody.shelterId,

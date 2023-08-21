@@ -1,6 +1,6 @@
 package com.sheltersdog.core.security
 
-import com.sheltersdog.core.exception.ExceptionMessage
+import com.sheltersdog.core.exception.ExceptionType
 import com.sheltersdog.core.model.AUTHORIZATION
 import com.sheltersdog.core.model.BEARER
 import com.sheltersdog.core.properties.ActiveProperties
@@ -39,7 +39,7 @@ class JwtFilter @Autowired constructor(
         ) {
             val value = exchange.request.headers[gatewayProperties.key]
             if (value.isNullOrEmpty() || !value.first().equals(gatewayProperties.value)) {
-                return filterChainError(exchange, ExceptionMessage.NOT_EXIST_TOKEN.description)
+                return filterChainError(exchange, ExceptionType.NOT_FOUND_TOKEN.message)
             }
         }
 
@@ -47,7 +47,7 @@ class JwtFilter @Autowired constructor(
         val isRequiredJwt = checkRequiredJwtApi(exchange.request)
         if (authorizationWrapper.isNullOrEmpty()) {
             if (isRequiredJwt) {
-                return filterChainError(exchange, ExceptionMessage.WRONG_PATH.description)
+                return filterChainError(exchange, ExceptionType.WRONG_PATH.message)
             }
 
             return chain.filter(exchange)
@@ -57,7 +57,7 @@ class JwtFilter @Autowired constructor(
         val securityContext = getContext(jwt)
 
         if (isRequiredJwt && securityContext == null) {
-            return filterChainError(exchange, ExceptionMessage.TOKEN_PARSE_EXCEPTION.description)
+            return filterChainError(exchange, ExceptionType.TOKEN_PARSE_EXCEPTION.message)
         }
 
         return if (securityContext != null) chain.filter(exchange).contextWrite { securityContext }

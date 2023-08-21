@@ -33,7 +33,7 @@ data class User(
 fun User?.ifNullOrNotActiveThrow(variables: Map<String, Any?>): User {
     if (this != null && this.status == UserStatus.ACTIVE) return this
     throw SheltersdogException(
-        exceptionType = ExceptionType.NOT_FOUND_USER,
+        type = ExceptionType.NOT_FOUND_USER,
         variables = variables,
     )
 }

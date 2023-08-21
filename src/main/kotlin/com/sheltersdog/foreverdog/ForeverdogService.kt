@@ -10,12 +10,13 @@ import com.sheltersdog.foreverdog.dto.request.PostForeverdogRequest
 import com.sheltersdog.foreverdog.dto.response.ForeverdogDto
 import com.sheltersdog.foreverdog.entity.Foreverdog
 import com.sheltersdog.foreverdog.entity.model.ForeverdogStatus
-import com.sheltersdog.foreverdog.mapper.foreverdogToDto
+import com.sheltersdog.foreverdog.mapper.toDto
 import com.sheltersdog.foreverdog.repository.ForeverdogRepository
 import com.sheltersdog.shelter.entity.model.ShelterAuthority
 import com.sheltersdog.shelter.event.SaveForeverdogEvent
 import com.sheltersdog.shelter.repository.ShelterRepository
 import com.sheltersdog.shelter.util.hasAuthority
+import com.sheltersdog.shelter.util.hasAuthorityOrThrow
 import kotlinx.coroutines.reactive.awaitSingle
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -37,7 +38,7 @@ class ForeverdogService @Autowired constructor(
             (ReactiveSecurityContextHolder.getContext().awaitSingle().authentication.principal as User).username
         val shelter = shelterRepository.findById(requestBody.shelterId)
             ?: throw SheltersdogException(
-                exceptionType = ExceptionType.NOT_FOUND_SHELTER,
+                type = ExceptionType.NOT_FOUND_SHELTER,
                 variables = mapOf(
                     "shelterId" to requestBody.shelterId,
                     "userId" to userId,
@@ -54,7 +55,7 @@ class ForeverdogService @Autowired constructor(
 
         if (!hasAuthority) {
             throw SheltersdogException(
-                exceptionType = ExceptionType.ACCESS_DENIED,
+                type = ExceptionType.ACCESS_DENIED,
                 variables = mapOf(
                     "userId" to userId,
                     "shelterId" to requestBody.shelterId,
@@ -82,7 +83,7 @@ class ForeverdogService @Autowired constructor(
         )
         val foreverdog = foreverdogRepository.save(entity.copy(searchKeyword = entity.toString()))
         EventBus.publish(SaveForeverdogEvent(foreverdogId = foreverdog.id.toString()))
-        return foreverdogToDto(foreverdog, true)
+        return foreverdog.toDto(true)
     }
 
     suspend fun getForeverdogs(requestParam: GetForeverdogsRequest): List<ForeverdogDto> {
@@ -95,36 +96,32 @@ class ForeverdogService @Autowired constructor(
             statuses = statuses,
         )
 
-        return foreverdogs.map { foreverdog -> foreverdogToDto(foreverdog) }
+        return foreverdogs.map(Foreverdog::toDto)
     }
 
     suspend fun putForeverdogStatus(foreverdogId: String, status: ForeverdogStatus): ForeverdogDto {
-        val entity = foreverdogRepository.findById(foreverdogId)
-            ?: throw SheltersdogException(
-                exceptionType = ExceptionType.NOT_FOUND_FOREVERDOG,
-                variables = mapOf(
-                    "foreverdogId" to foreverdogId
-                )
+        val entity = foreverdogRepository.findById(
+            foreverdogId = foreverdogId,
+            isContainShelter = true,
+        ) ?: throw SheltersdogException(
+            type = ExceptionType.NOT_FOUND_FOREVERDOG,
+            variables = mapOf(
+                "foreverdogId" to foreverdogId
             )
+        )
 
-        val hasAuthority = entity.shelter?.sheltersAdmins?.hasAuthority(
+        entity.shelter?.hasAuthorityOrThrow(
             shelterAuthorities = listOf(
                 ShelterAuthority.ADMIN,
                 ShelterAuthority.DOG_MANAGE
             )
-        ) ?: false
-
-        if (!hasAuthority) {
-            val userId =
-                (ReactiveSecurityContextHolder.getContext().awaitSingle().authentication.principal as User).username
-            throw SheltersdogException(
-                exceptionType = ExceptionType.ACCESS_DENIED,
-                variables = mapOf(
-                    "userId" to userId, "foreverdogId" to foreverdogId,
-                    "ShelterAuthority" to ShelterAuthority.DOG_MANAGE,
-                ),
+        ) ?: throw SheltersdogException(
+            type = ExceptionType.NOT_FOUND_SHELTER,
+            variables = mapOf(
+                "shelterId" to entity.shelterId,
+                "foreverdogId" to foreverdogId,
             )
-        }
+        )
 
         foreverdogRepository.updateById(
             id = foreverdogId,
@@ -139,8 +136,13 @@ class ForeverdogService @Autowired constructor(
             )
         )
 
-        return foreverdogToDto(
-            entity = foreverdogRepository.findById(foreverdogId)!!
-        )
+        return foreverdogRepository.findById(foreverdogId)?.toDto()
+            ?: throw SheltersdogException(
+                type = ExceptionType.NOT_FOUND_SHELTER,
+                variables = mapOf(
+                    "shelterId" to entity.shelterId,
+                    "foreverdogId" to foreverdogId,
+                )
+            )
     }
 }

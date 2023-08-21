@@ -10,7 +10,7 @@ fun Map<String, Any>.notStringThrow(name: String): String {
     }
 
     throw SheltersdogException(
-        exceptionType = ExceptionType.VALID_CHECK_WRONG,
+        type = ExceptionType.VALID_CHECK_WRONG,
         variables = mapOf(name to this[name]),
     )
 }
@@ -19,7 +19,7 @@ fun Principal.nameNotStringThrow(): String {
     if (!this.name.isNullOrBlank()) return this.name.toString()
 
     throw SheltersdogException(
-        exceptionType = ExceptionType.ACCESS_TOKEN_WRONG,
+        type = ExceptionType.ACCESS_TOKEN_WRONG,
         variables = mapOf("principal" to this),
     )
 }

@@ -46,11 +46,11 @@ class SheltersdogExceptionHandler @Autowired constructor(
     suspend fun handleSheltersdogException(
         e: SheltersdogException,
     ): ResponseEntity<Any> {
-        val logMessage = e.exceptionType.logMessage()
+        val httpStatus = e.type.httpStatus()
         val errorStackTrace = getPrintStackTrace(e)
 
-        log.error(logMessage.description, e.variables, errorStackTrace)
-        return ResponseEntity.status(e.httpStatus).body(e.message)
+        log.error(e.type.message, e.variables, errorStackTrace)
+        return ResponseEntity.status(httpStatus).body(e.type.message)
     }
 
     fun handleValidationException(e: ValidationException): ResponseEntity<Any> {

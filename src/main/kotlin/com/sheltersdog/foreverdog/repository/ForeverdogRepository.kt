@@ -33,6 +33,7 @@ class ForeverdogRepository @Autowired constructor(
             .findById(foreverdogId, Foreverdog::class.java)
             .awaitSingleOrNull()
             ?: return null
+        if (!isContainShelter) return foreverdog
 
         val shelter = reactiveMongoTemplate
             .findById(foreverdog.shelterId, Shelter::class.java)

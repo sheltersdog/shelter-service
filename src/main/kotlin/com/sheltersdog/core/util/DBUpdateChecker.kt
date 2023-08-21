@@ -14,7 +14,7 @@ fun UpdateResult.ifUpdateFailThrow(
     copyVariables["TableName"] = tableName
     val va = variables
     throw SheltersdogException(
-        exceptionType = ExceptionType.DB_UPDATE_FAIL,
+        type = ExceptionType.DB_UPDATE_FAIL,
         variables = copyVariables,
     )
 

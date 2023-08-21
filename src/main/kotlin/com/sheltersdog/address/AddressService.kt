@@ -111,7 +111,7 @@ class AddressService @Autowired constructor(
             .exchangeToMono { it.bodyToMono(KakaoDocument::class.java) }
             .awaitFirstOrNull()
             ?: throw SheltersdogException(
-                exceptionType = ExceptionType.NOT_FOUND_KAKAO_DOCUMENT,
+                type = ExceptionType.NOT_FOUND_KAKAO_DOCUMENT,
                 variables = mapOf("url" to uri)
             )
     }
@@ -124,7 +124,7 @@ class AddressService @Autowired constructor(
         val address = addressRepository.getAddresses(
             type, parentCode, keyword
         ) ?: throw SheltersdogException(
-            exceptionType = ExceptionType.NOT_FOUND_ADDRESS,
+            type = ExceptionType.NOT_FOUND_ADDRESS,
             variables = mapOf(
                 "type" to type,
                 "parentCode" to parentCode,

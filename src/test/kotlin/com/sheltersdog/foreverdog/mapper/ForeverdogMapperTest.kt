@@ -19,7 +19,7 @@ class ForeverdogMapperTest {
     @MethodSource
     @ParameterizedTest(name = "entity: {0}")
     fun foreverdogToDtoTest(entity: Foreverdog) {
-        val dto = foreverdogToDto(entity)
+        val dto = entity.toDto()
         assertEquals(entity.id.toString(), dto.id)
         assertEquals(entity.status, dto.status)
         assertEquals(entity.shelterId, dto.shelterId)
