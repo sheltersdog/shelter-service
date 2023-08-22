@@ -50,6 +50,10 @@ enum class ExceptionType(
         log = "데이터베이스 업데이트에 실패하였습니다. {}\n{}",
         message = "업데이트에 실패하였습니다.",
     ),
+    DB_INSERT_FAIL(
+        log = "데이터베이스 저장에 실패하였습니다. {}\n{}",
+        message = "데이터 저장에 실패하였습니다.",
+    ),
 
     NOT_FOUND_KAKAO_TOKEN(
         log = "카카오 토큰을 조회하는데 실패하였습니다. {}\n{}",
@@ -107,6 +111,7 @@ fun ExceptionType.httpStatus(): HttpStatus {
 
         NOT_FOUND_FOREVERDOG,
         DB_UPDATE_FAIL,
+        DB_INSERT_FAIL,
 
         NOT_FOUND_KAKAO_TOKEN,
         NOT_FOUND_KAKAO_USER_INFO,

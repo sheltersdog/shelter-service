@@ -3,7 +3,7 @@ package com.sheltersdog.image
 import com.sheltersdog.core.exception.ExceptionType
 import com.sheltersdog.core.exception.SheltersdogException
 import com.sheltersdog.core.model.FileType
-import com.sheltersdog.core.util.fileTypeCheck
+import com.sheltersdog.core.util.typeCheck
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import org.springframework.beans.factory.annotation.Autowired
@@ -22,7 +22,7 @@ class ImageController @Autowired constructor(
     suspend fun upload(
         @RequestPart("file") requestPart: FilePart
     ): String {
-        if (!fileTypeCheck(FileType.IMAGE, requestPart)) {
+        if (!requestPart.typeCheck(FileType.IMAGE)) {
             throw SheltersdogException(
                 type = ExceptionType.FILE_TYPE_WRONG,
                 variables = mapOf(
@@ -35,9 +35,9 @@ class ImageController @Autowired constructor(
     }
 
     @PostMapping("/list")
-    fun uploadAll(@RequestPart("files") requestParts: Flow<FilePart>): Flow<String> {
+    suspend fun uploadAll(@RequestPart("files") requestParts: Flow<FilePart>): Flow<String> {
         return requestParts.map { file ->
-            if (!fileTypeCheck(FileType.IMAGE, file)) {
+            if (!file.typeCheck(FileType.IMAGE)) {
                 throw SheltersdogException(
                     type = ExceptionType.FILE_TYPE_WRONG,
                     variables = mapOf(

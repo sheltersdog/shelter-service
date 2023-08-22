@@ -23,7 +23,7 @@ class FileTypeCheckerTest {
         val headers = HttpHeaders()
         headers.contentType = mediaType
         Mockito.`when`(filePart.headers()).thenReturn(headers)
-        test(fileTypeCheck(type, filePart))
+        test(filePart.typeCheck(type))
     }
 
     @MethodSource

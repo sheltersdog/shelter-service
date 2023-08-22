@@ -42,8 +42,8 @@ class ImageService @Autowired constructor(
 
         val image = imageRepository.save(
             Image(
-                type = ImageType.USER_PROFILE,
-                status = ImageStatus.NOT_CONNECTED
+                type = ImageType.WEB,
+                status = ImageStatus.ACTIVE,
             )
         )
 
@@ -69,7 +69,8 @@ class ImageService @Autowired constructor(
             } else {
                 ""
             }
-        } catch (e: Exception) { /* do nothing */ } finally {
+        } catch (e: Exception) { /* do nothing */
+        } finally {
             resizeFile.delete()
         }
 
@@ -83,7 +84,7 @@ class ImageService @Autowired constructor(
         file: File,
         filename: String,
         extension: String,
-        key: ObjectId
+        key: ObjectId,
     ): PutObjectResponse {
         val metadata = s3MetadataGenerator.generateImageMetadata(
             file, "${filename}.${extension}"
@@ -101,7 +102,7 @@ class ImageService @Autowired constructor(
         resizeFile: File,
         extension: String,
         filename: String,
-        key: ObjectId
+        key: ObjectId,
     ): PutObjectResponse {
         resizeImage(
             file = file,
@@ -127,20 +128,19 @@ class ImageService @Autowired constructor(
         thumbFilename: String? = null,
     ): Image {
         val imageInfo = Imaging.getImageInfo(file)
-        return imageRepository.save(
-            Image(
-                id = key,
-                type = ImageType.USER_PROFILE,
-                url = "${awsProperties.cloudFrontUrl}${key}/${filename}.${extension}",
-                filename = "${filename}.${extension}",
-                resizeFilename = thumbFilename,
-                status = ImageStatus.ACTIVE,
-                width = imageInfo.width,
-                height = imageInfo.height,
-                size = file.length(),
-                regDate = LocalDateTime.now()
-            )
+        val image = Image(
+            id = key,
+            type = ImageType.USER_PROFILE,
+            url = "${awsProperties.cloudFrontUrl}${key}/${filename}.${extension}",
+            filename = "${filename}.${extension}",
+            resizeFilename = thumbFilename,
+            status = ImageStatus.ACTIVE,
+            width = imageInfo.width,
+            height = imageInfo.height,
+            size = file.length(),
+            regDate = LocalDateTime.now()
         )
+        return imageRepository.save(image)
     }
 
 }

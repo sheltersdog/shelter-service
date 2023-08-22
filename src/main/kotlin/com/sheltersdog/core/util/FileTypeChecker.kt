@@ -5,8 +5,8 @@ import org.apache.commons.io.FilenameUtils
 import org.springframework.http.MediaType
 import org.springframework.http.codec.multipart.FilePart
 
-fun fileTypeCheck(type: FileType, file: FilePart): Boolean {
-    return when (file.headers().contentType) {
+fun FilePart.typeCheck(type: FileType): Boolean {
+    return when (this.headers().contentType) {
         MediaType.IMAGE_JPEG,
         MediaType.IMAGE_PNG,
         -> type == FileType.IMAGE
