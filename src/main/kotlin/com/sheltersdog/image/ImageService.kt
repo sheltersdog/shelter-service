@@ -9,7 +9,9 @@ import com.sheltersdog.image.entity.model.ImageStatus
 import com.sheltersdog.image.entity.model.ImageType
 import com.sheltersdog.image.repository.ImageRepository
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.reactive.awaitSingle
+import kotlinx.coroutines.reactive.awaitFirstOrNull
+import kotlinx.coroutines.reactive.awaitLast
+import kotlinx.coroutines.reactor.awaitSingle
 import kotlinx.coroutines.withContext
 import org.apache.commons.imaging.Imaging
 import org.apache.commons.io.FilenameUtils
@@ -22,7 +24,6 @@ import org.springframework.stereotype.Service
 import software.amazon.awssdk.services.s3.model.PutObjectResponse
 import java.io.File
 import java.nio.file.Files
-import java.time.LocalDateTime
 import java.util.*
 
 @Service
@@ -45,16 +46,15 @@ class ImageService @Autowired constructor(
                 type = ImageType.WEB,
                 status = ImageStatus.ACTIVE,
             )
-        )
+        ).awaitLast()
 
         val file = withContext(Dispatchers.IO) {
             Files.createTempFile(
                 uuid.substring(0, 8), ".${extension}"
             )
         }.toFile()
-        filePart.transferTo(file).awaitSingle()
+        filePart.transferTo(file).awaitFirstOrNull()
         imageSaveS3(file, filename, extension, image.id!!)
-
 
         val resizeFile = withContext(Dispatchers.IO) {
             Files.createTempFile(
@@ -74,7 +74,12 @@ class ImageService @Autowired constructor(
             resizeFile.delete()
         }
 
-        val updatedImage = updateImageEntity(file, image.id, filename, extension, thumbFilename)
+        val updatedImage = updateImageEntity(
+            file = file,
+            key = image.id,
+            filename = "${filename}.${extension}",
+            thumbFilename = thumbFilename
+        )
         file.delete()
 
         return updatedImage.url
@@ -124,23 +129,21 @@ class ImageService @Autowired constructor(
         file: File,
         key: ObjectId,
         filename: String,
-        extension: String,
         thumbFilename: String? = null,
     ): Image {
         val imageInfo = Imaging.getImageInfo(file)
         val image = Image(
             id = key,
             type = ImageType.USER_PROFILE,
-            url = "${awsProperties.cloudFrontUrl}${key}/${filename}.${extension}",
-            filename = "${filename}.${extension}",
+            url = "${awsProperties.cloudFrontUrl}${key}/${thumbFilename ?: filename}",
+            filename = filename,
             resizeFilename = thumbFilename,
             status = ImageStatus.ACTIVE,
             width = imageInfo.width,
             height = imageInfo.height,
             size = file.length(),
-            regDate = LocalDateTime.now()
         )
-        return imageRepository.save(image)
+        return imageRepository.save(image).awaitSingle()
     }
 
 }

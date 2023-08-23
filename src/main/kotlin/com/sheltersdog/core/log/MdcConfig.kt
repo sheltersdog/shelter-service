@@ -40,7 +40,11 @@ class MDCContextLifterConfig {
 
 class MDCContextLifter<T>(private val coreSubscriber: CoreSubscriber<T>) : CoreSubscriber<T> {
     override fun onSubscribe(s: Subscription) = coreSubscriber.onSubscribe(s)
-    override fun onError(t: Throwable?) = coreSubscriber.onError(t)
+    override fun onError(t: Throwable?) {
+        coreSubscriber.currentContext().copyToMdc()
+        coreSubscriber.onError(t)
+    }
+
     override fun onComplete() = coreSubscriber.onComplete()
     override fun currentContext(): Context = coreSubscriber.currentContext()
 
@@ -54,7 +58,12 @@ class MDCContextLifter<T>(private val coreSubscriber: CoreSubscriber<T>) : CoreS
 private fun Context.copyToMdc() {
     if (!this.isEmpty) {
         val map: Map<String, String> = this.stream()
-            .collect(Collectors.toMap({ e -> e.key.toString() }, { e -> e.value.toString() }))
+            .collect(
+                Collectors.toMap(
+                    { e -> e.key.toString() },
+                    { e -> e.value.toString() }
+                )
+            )
         MDC.setContextMap(map)
     } else {
         MDC.clear()
