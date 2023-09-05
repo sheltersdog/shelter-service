@@ -2,10 +2,13 @@ package com.sheltersdog.core.mail
 
 import jakarta.mail.internet.InternetAddress
 import jakarta.mail.internet.MimeMessage
+import kotlinx.coroutines.reactor.awaitSingle
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.core.io.ResourceLoader
 import org.springframework.mail.javamail.JavaMailSender
 import org.springframework.stereotype.Component
+import reactor.core.publisher.Mono
+import reactor.core.scheduler.Schedulers
 import java.io.BufferedReader
 import java.io.FileReader
 import java.io.IOException
@@ -33,7 +36,11 @@ class SheltersdogMailSender @Autowired constructor(
             subject = type.subject,
         )
 
-        return kotlin.runCatching { javaMailSender.send(message) }.isSuccess
+        return Mono.fromCallable {
+            kotlin.runCatching {
+                javaMailSender.send(message)
+            }.isSuccess
+        }.publishOn(Schedulers.boundedElastic()).awaitSingle()
     }
 
     private fun convertEmailTemplate(
