@@ -1,6 +1,7 @@
 package com.sheltersdog.user.repository
 
 import com.mongodb.client.result.UpdateResult
+import com.sheltersdog.core.database.updateQuery
 import com.sheltersdog.core.model.SocialType
 import com.sheltersdog.user.entity.User
 import com.sheltersdog.user.entity.model.UserStatus
@@ -13,6 +14,7 @@ import org.springframework.data.mongodb.core.query.Update
 import org.springframework.data.mongodb.core.query.and
 import org.springframework.data.mongodb.core.query.where
 import org.springframework.stereotype.Repository
+import kotlin.reflect.KProperty
 
 @Repository
 class UserRepository @Autowired constructor(
@@ -52,6 +54,19 @@ class UserRepository @Autowired constructor(
                     .and(User::status).`is`(UserStatus.ACTIVE)
             ), Update().set(User::status.toString(), UserStatus.INACTIVE),
             User::class.java
+        ).awaitSingle()
+    }
+
+    suspend fun updateById(
+        id: String,
+        updateFields: Map<KProperty<*>, Any?>
+    ): UpdateResult {
+        val update = updateQuery(updateFields)
+
+        return reactiveMongoTemplate.updateFirst(
+            Query.query(
+                where(User::id).`is`(id)
+            ), update, User::class.java
         ).awaitSingle()
     }
 }

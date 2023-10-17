@@ -5,16 +5,21 @@ import com.sheltersdog.core.exception.ExceptionType
 import com.sheltersdog.core.exception.SheltersdogException
 import com.sheltersdog.core.model.SocialType
 import com.sheltersdog.core.security.jwt.JwtProvider
+import com.sheltersdog.core.util.ifUpdateFailThrow
+import com.sheltersdog.user.dto.request.PutUserProfileRequest
 import com.sheltersdog.user.dto.request.UserJoinRequest
 import com.sheltersdog.user.dto.request.UserLoginRequest
 import com.sheltersdog.user.entity.User
 import com.sheltersdog.user.entity.model.UserStatus
 import com.sheltersdog.user.repository.UserRepository
+import kotlinx.coroutines.reactive.awaitSingle
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.security.core.context.ReactiveSecurityContextHolder
 import org.springframework.stereotype.Service
 import java.time.LocalDate
+import kotlin.reflect.KProperty
 
 @Service
 class UserService @Autowired constructor(
@@ -68,5 +73,31 @@ class UserService @Autowired constructor(
         )
 
         return jwtProvider.generateToken(id = user.id.toString())
+    }
+
+    suspend fun putProfile(requestBody: PutUserProfileRequest) {
+        val userId =
+            (ReactiveSecurityContextHolder.getContext()
+                .awaitSingle().authentication.principal as org.springframework.security.core.userdetails.User).username
+
+        val updateFields = mutableMapOf<KProperty<*>, Any?>()
+
+        if (requestBody.nickname !== null) {
+            updateFields[User::nickname] = requestBody.nickname
+        }
+
+        if (requestBody.profileImageUrl !== null) {
+            updateFields[User::profileImageUrl] = requestBody.profileImageUrl
+        }
+
+        if (updateFields.isEmpty()) return
+
+        userRepository.updateById(
+            id = userId,
+            updateFields = updateFields,
+        ).ifUpdateFailThrow(
+            tableName = User::class.java.name,
+            variables = mapOf("requestBody" to requestBody),
+        )
     }
 }
