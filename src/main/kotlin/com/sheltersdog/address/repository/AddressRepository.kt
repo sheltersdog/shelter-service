@@ -3,7 +3,8 @@ package com.sheltersdog.address.repository
 import com.sheltersdog.address.entity.Address
 import com.sheltersdog.address.model.AddressType
 import com.sheltersdog.address.model.getParentPropertyCode
-import kotlinx.coroutines.reactive.awaitFirstOrNull
+import kotlinx.coroutines.flow.toList
+import kotlinx.coroutines.reactive.asFlow
 import kotlinx.coroutines.reactive.awaitSingle
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.data.mongodb.core.ReactiveMongoTemplate
@@ -20,13 +21,13 @@ class AddressRepository @Autowired constructor(
         type: AddressType,
         parentCode: String,
         keyword: String,
-    ): Address? {
+    ): List<Address> {
 
         val query = Query.query(where(Address::type).`is`(type))
         if (parentCode.isBlank() && keyword.isBlank()) {
             return reactiveMongoTemplate.find(
                 query, Address::class.java
-            ).awaitSingle()
+            ).asFlow().toList()
         }
 
         val parentProperty = type.getParentPropertyCode()
@@ -44,7 +45,7 @@ class AddressRepository @Autowired constructor(
         return reactiveMongoTemplate.find(
             query,
             Address::class.java,
-        ).awaitFirstOrNull()
+        ).asFlow().toList()
     }
 
     suspend fun getAddressByRegionCode(regionCode: Long): Address {

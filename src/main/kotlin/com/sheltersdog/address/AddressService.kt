@@ -120,26 +120,21 @@ class AddressService @Autowired constructor(
         type: AddressType,
         parentCode: String,
         keyword: String,
-    ): AddressDto {
-        val address = addressRepository.getAddresses(
+    ): List<AddressDto> {
+        val addresses = addressRepository.getAddresses(
             type, parentCode, keyword
-        ) ?: throw SheltersdogException(
-            type = ExceptionType.NOT_FOUND_ADDRESS,
-            variables = mapOf(
-                "type" to type,
-                "parentCode" to parentCode,
-                "keyword" to keyword
-            )
         )
 
-        return AddressDto(
-            id = address.id.toString(),
-            type = type,
-            regionName = address.regionName,
-            regionCode = address.regionCd,
-            name = type.getPropertyName().get(receiver = address).toString(),
-            code = type.getPropertyCode().get(receiver = address).toString(),
-        )
+        return addresses.map { address ->
+            AddressDto(
+                id = address.id.toString(),
+                type = type,
+                regionName = address.regionName,
+                regionCode = address.regionCd,
+                name = type.getPropertyName().get(receiver = address).toString(),
+                code = type.getPropertyCode().get(receiver = address).toString(),
+            )
+        }
     }
 
 
