@@ -37,7 +37,7 @@ class ImageService @Autowired constructor(
 
     suspend fun upload(filePart: FilePart): String {
         val extension = FilenameUtils.getExtension(filePart.filename())
-        val filename = FilenameUtils.getBaseName(filePart.filename())
+        val originFilename = FilenameUtils.getBaseName(filePart.filename())
 
         val uuid = UUID.randomUUID().toString()
 
@@ -54,7 +54,13 @@ class ImageService @Autowired constructor(
             )
         }.toFile()
         filePart.transferTo(file).awaitFirstOrNull()
-        imageSaveS3(file, filename, extension, image.id!!)
+        imageSaveS3(
+            file = file,
+            filename = uuid,
+            originFilename = originFilename,
+            extension = extension,
+            key = image.id!!,
+        )
 
         val resizeFile = withContext(Dispatchers.IO) {
             Files.createTempFile(
@@ -63,9 +69,16 @@ class ImageService @Autowired constructor(
         }.toFile()
         var thumbFilename: String? = null
         try {
-            val putObjectResponse = imageResizeAndSaveS3(file, resizeFile, extension, filename, image.id)
+            val putObjectResponse = imageResizeAndSaveS3(
+                file = file,
+                resizeFile = resizeFile,
+                extension = extension,
+                filename = uuid,
+                originFilename = originFilename,
+                key = image.id,
+            )
             thumbFilename = if (putObjectResponse.bucketKeyEnabled() == null) {
-                "thumb_${filename}.${extension}"
+                "thumb_${uuid}.${extension}"
             } else {
                 ""
             }
@@ -77,7 +90,7 @@ class ImageService @Autowired constructor(
         val updatedImage = updateImageEntity(
             file = file,
             key = image.id,
-            filename = "${filename}.${extension}",
+            filename = "${uuid}.${extension}",
             thumbFilename = thumbFilename
         )
         file.delete()
@@ -88,11 +101,14 @@ class ImageService @Autowired constructor(
     private suspend fun imageSaveS3(
         file: File,
         filename: String,
+        originFilename: String,
         extension: String,
         key: ObjectId,
     ): PutObjectResponse {
         val metadata = s3MetadataGenerator.generateImageMetadata(
-            file, "${filename}.${extension}"
+            file = file,
+            filename = "${filename}.${extension}",
+            originFilename = originFilename,
         )
         return s3Uploader.uploadObject(
             file = file,
@@ -107,6 +123,7 @@ class ImageService @Autowired constructor(
         resizeFile: File,
         extension: String,
         filename: String,
+        originFilename: String,
         key: ObjectId,
     ): PutObjectResponse {
         resizeImage(
@@ -115,7 +132,9 @@ class ImageService @Autowired constructor(
             extension = extension,
         )
         val metadata = s3MetadataGenerator.generateImageMetadata(
-            resizeFile, "thumb_${filename}.${extension}"
+            file = resizeFile,
+            filename = "thumb_${filename}.${extension}",
+            originFilename = originFilename,
         )
         return s3Uploader.uploadObject(
             file = file,

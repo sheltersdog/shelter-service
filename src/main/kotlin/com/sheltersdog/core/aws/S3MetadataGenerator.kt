@@ -9,11 +9,13 @@ class S3MetadataGenerator {
 
     fun generateImageMetadata(
         file: File,
-        filename: String): Map<String, String> {
+        filename: String,
+        originFilename: String,): Map<String, String> {
         val imageInfo = Imaging.getImageInfo(file)
 
         return mapOf(
             Pair("filename", filename),
+            Pair("originFilename", originFilename),
             Pair("width", imageInfo.width.toString()),
             Pair("height", imageInfo.height.toString()),
         )
